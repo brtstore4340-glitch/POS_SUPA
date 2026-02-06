@@ -6,11 +6,10 @@
     "node": "20"
   },
   "scripts": {
-    "lint": "eslint \"**/*.{js,cjs}\"",
-    "test": "node -e \"console.log('test: skip (add tests later)')\""
-  "main": "index.js",
-  "scripts": {
-    "build": "node -e \"console.log('No build step for functions')\""
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "firebase-admin": "^12.7.0",

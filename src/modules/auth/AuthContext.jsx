@@ -9,8 +9,9 @@ import {
   signInWithPopup,
   signInAnonymously
 } from "firebase/auth";
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { listMyIds } from "@/services/rbacService";
 
 /**
  * AuthContext
@@ -91,14 +92,17 @@ export function AuthProvider({ children }) {
   const loadIds = useCallback(async () => {
     if (!fbUser) return [];
     try {
-      const col = collection(db, "accounts", fbUser.uid, "profiles");
-      const q = query(col, orderBy("createdAt", "asc"));
-      const snap = await getDocs(q);
-      const profiles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const email = String(fbUser.email || "").trim().toLowerCase();
+      if (!email) {
+        setIds([]);
+        return [];
+      }
+      const profiles = await listMyIds();
       setIds(profiles);
       return profiles;
     } catch (error) {
       console.error("Error loading IDs:", error);
+      setIds([]);
       return [];
     }
   }, [fbUser]);
@@ -173,9 +177,11 @@ export function AuthProvider({ children }) {
     unsubAccountRef.current = null;
 
     if (!fbUser) return () => {};
+    const email = String(fbUser.email || "").trim().toLowerCase();
+    if (!email) return () => {};
 
     try {
-      const ref = doc(db, "accounts", fbUser.uid);
+      const ref = doc(db, "accounts", email);
       const unsub = onSnapshot(
         ref,
         (snap) => {

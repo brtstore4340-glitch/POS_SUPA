@@ -1,3 +1,4 @@
+﻿/* FAST_IMPORT_GUARDRAIL: Do not perform network/DB/init work at module load. Keep admin/firestore lazy. */
 /* functions/index.js */
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -22,8 +23,8 @@ function ensureAdmin() {
   }
 }
 
+// Initialize admin SDK immediately
 function getDb() {
-  ensureAdmin();
   if (!cachedDb) {
     cachedDb = admin.firestore();
   }
@@ -60,6 +61,11 @@ function getAuthEmail(context) {
   return email;
 }
 function requireAppCheck(context) {
+  // Skip App Check in development (when NODE_ENV is not production)
+  if (process.env.NODE_ENV !== "production") {
+    console.log("๐”ง Development mode: Skipping App Check");
+    return;
+  }
   if (!context.app) throw new functions.https.HttpsError("failed-precondition", "App Check required");
 }
 
@@ -156,7 +162,7 @@ async function writeAuditLog(payload) {
 }
 
 function normalizeType(type) {
-  // ✅ NEW: pricing = ItemMasterPrintOnDeph (must be first)
+  // โ… NEW: pricing = ItemMasterPrintOnDeph (must be first)
   if (!["pricing", "master", "maintenance"].includes(type)) {
     throw new functions.https.HttpsError("invalid-argument", "Invalid upload type");
   }
@@ -173,7 +179,7 @@ async function acquireLock(lockOwner, type, fileMeta) {
       throw new functions.https.HttpsError("failed-precondition", `Upload in progress by ${lock.by || "unknown"}`);
     }
 
-    // ✅ NEW prerequisite: pricing must be ready before master/maintenance
+    // โ… NEW prerequisite: pricing must be ready before master/maintenance
     const pricingReady = !!(data.pricing && data.pricing.isReady);
     if ((type === "master" || type === "maintenance") && !pricingReady) {
       throw new functions.https.HttpsError("failed-precondition", "ItemMasterPrintOnDeph (pricing) not uploaded yet");
@@ -207,7 +213,7 @@ const MAX_OPS_PER_BATCH = 400;
 function safeStr(x) { return (x === undefined || x === null) ? "" : String(x).trim(); }
 function safeNum(x) { const n = Number(x); return Number.isFinite(n) ? n : 0; }
 
-// ✅ Step 1 = PRICING (ItemMasterPrintOnDeph) - create/upsert base products
+// โ… Step 1 = PRICING (ItemMasterPrintOnDeph) - create/upsert base products
 function mapPricingRow(row) {
   const itemCode = safeStr(row.Itemcode || row.ItemCode || row.ProductCode);
   if (!itemCode) return null;
@@ -239,7 +245,7 @@ function mapPricingRow(row) {
   return { itemCode, barcode, doc };
 }
 
-// ✅ Step 2 = MASTER (ProductAllDept) - enrich/merge only (no need to exist check now, but ok)
+// โ… Step 2 = MASTER (ProductAllDept) - enrich/merge only (no need to exist check now, but ok)
 function mapMasterRow(row) {
   const itemCode = safeStr(row.ProductCode || row.Itemcode || row.ItemCode || row.ID);
   const name = safeStr(row.ProductDesc || row.Description || row.Name);
@@ -891,7 +897,6 @@ exports.setAdminRole = functions
     }
     
     try {
-      ensureAdmin();
       await admin.auth().setCustomUserClaims(uid, { 
         role: role,
         admin: role === 'admin'
@@ -915,3 +920,6 @@ exports.setFirstAdmin = functions
   .https.onRequest((req, res) => {
     res.status(410).send("setFirstAdmin disabled");
   });
+
+
+

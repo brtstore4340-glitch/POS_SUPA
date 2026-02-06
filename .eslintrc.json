@@ -65,21 +65,7 @@
         "node": true
       }
     },
-    {
-      "files": [
-        "boots-grab-print/extension/src/**/*.js",
-        "extension/src/**/*.js",
-        "**/extension/src/**/*.js"
-      ],
-      "parserOptions": {
-        "ecmaVersion": 2022,
-        "sourceType": "module"
-      },
-      "env": {
-        "browser": true,
-        "es2021": true
-      }
-    },
+   
     {
       "files": [
         "pos-gem/src/**/*.{js,jsx}",

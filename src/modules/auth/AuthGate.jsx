@@ -1,4 +1,4 @@
-﻿
+
 import { useAuth } from "./AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import GoogleSignIn from "@/components/auth/GoogleSignIn";
@@ -10,7 +10,7 @@ export function AuthGate({ children }) {
   const { firebaseUser, session, loading, authLoading } = useAuth();
 
   // Show loading spinner while checking auth state
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen grid place-items-center p-6">
         <LoadingSpinner label="Preparing secure session..." />

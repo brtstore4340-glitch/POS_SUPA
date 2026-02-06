@@ -1,42 +1,50 @@
-import React from 'react';
-export default class ErrorBoundary extends React.Component {
+import { Component } from 'react';
+
+export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, info: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, info) {
-    this.setState({ info });
-    // Also log to console
-    console.error("ErrorBoundary caught:", error, info);
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+    this.setState({ errorInfo });
   }
 
   render() {
     if (this.state.hasError) {
-      const msg = this.state.error && this.state.error.message ? this.state.error.message : String(this.state.error || "Unknown error");
-      const stack = this.state.error && this.state.error.stack ? this.state.error.stack : "";
-      const info = this.state.info && this.state.info.componentStack ? this.state.info.componentStack : "";
-
       return (
-        <div style={{ padding: 16, fontFamily: "ui-sans-serif, system-ui", color: "#111" }}>
-          <h2 style={{ margin: "0 0 10px" }}>App crashed after login</h2>
-          <div style={{ marginBottom: 10, color: "crimson", whiteSpace: "pre-wrap" }}>{msg}</div>
-          {stack ? (
-            <details style={{ marginBottom: 10 }}>
-              <summary>Stack</summary>
-              <pre style={{ whiteSpace: "pre-wrap" }}>{stack}</pre>
-            </details>
-          ) : null}
-          {info ? (
-            <details>
-              <summary>Component Stack</summary>
-              <pre style={{ whiteSpace: "pre-wrap" }}>{info}</pre>
-            </details>
-          ) : null}
+        <div className="min-h-screen flex items-center justify-center p-4 bg-red-50">
+          <div className="max-w-2xl w-full bg-white border border-red-200 rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-red-800 mb-4">Application Error</h2>
+            <div className="mb-4">
+              <p className="text-sm font-semibold text-red-600">Error:</p>
+              <pre className="text-xs text-red-700 bg-red-100 p-2 rounded overflow-auto">
+                {this.state.error?.toString() || 'Unknown error'}
+              </pre>
+            </div>
+            {this.state.errorInfo && (
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-red-600">Component Stack:</p>
+                <pre className="text-xs text-red-700 bg-red-100 p-2 rounded overflow-auto">
+                  {this.state.errorInfo.componentStack}
+                </pre>
+              </div>
+            )}
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null, errorInfo: null });
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       );
     }
@@ -44,3 +52,4 @@ export default class ErrorBoundary extends React.Component {
   }
 }
 
+export default ErrorBoundary;

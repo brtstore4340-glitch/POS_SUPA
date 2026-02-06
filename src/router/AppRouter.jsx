@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import ProtectedRoute from "@/modules/auth/ProtectedRoute";

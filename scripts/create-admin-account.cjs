@@ -42,6 +42,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const auth = admin.auth();
 
 function hashPin(pin, salt) {
   const pinSalt = salt || crypto.randomBytes(16).toString("base64");

@@ -50,7 +50,7 @@ export default [
       "src/toggle/jquery.js"
     ],
   },
-{ ignores: ['dist', 'node_modules', '.backup-eslint-parsing-*', 'boots-grab-print', 'functions', '.firebase', '**/*.min.*'] },
+{ ignores: ['dist', 'node_modules', '.backup-eslint-parsing-*', 'functions', '.firebase', '**/*.min.*'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
