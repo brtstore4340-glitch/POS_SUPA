@@ -1,35 +1,32 @@
-﻿/* FAST_IMPORT_GUARDRAIL: Do not perform network/DB/init work at module load. Keep admin/firestore lazy. */
-/* functions/index.js */
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+
+// Initialize Firebase Admin SDK immediately at module load
+admin.initializeApp();
+
 const crypto = require("crypto");
-const ALLOWED_ORIGINS = (process.env.ALLOWED_CORS_ORIGINS || "http://localhost:5173,http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
 const cors = require("cors")({
   origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    const allowedOrigins = (process.env.ALLOWED_CORS_ORIGINS || "http://localhost:5173,http://localhost:3000,https://boots-4340-project.web.app")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"), false);
   }
 });
 
+// Firestore lazy initialization
 let cachedDb = null;
-function ensureAdmin() {
-  if (!admin.apps.length) {
-    admin.initializeApp();
-  }
-}
-
-// Initialize admin SDK immediately
 function getDb() {
   if (!cachedDb) {
     cachedDb = admin.firestore();
   }
   return cachedDb;
 }
+
 const { calculateCartSummary } = require("./src/services/cartService");
 
 const REGION = "asia-southeast1";
@@ -60,18 +57,18 @@ function getAuthEmail(context) {
   if (!email) throw new functions.https.HttpsError("failed-precondition", "Email required");
   return email;
 }
+
 function requireAppCheck(context) {
-  // Skip App Check in development (when NODE_ENV is not production)
+  // Skip App Check in development
   if (process.env.NODE_ENV !== "production") {
-    console.log("๐”ง Development mode: Skipping App Check");
+    console.log("Development mode: Skipping App Check");
     return;
   }
   if (!context.app) throw new functions.https.HttpsError("failed-precondition", "App Check required");
 }
 
-async function isAdmin(uid) {
-  const snap = await getDb().collection("users").doc(uid).get();
-  return snap.exists && (snap.data().role === "admin");
+function isAdmin(uid) {
+  return getDb().collection("users").doc(uid).get().then(snap => snap.exists && snap.data().role === "admin");
 }
 
 function nowTs() { return admin.firestore.FieldValue.serverTimestamp(); }
@@ -162,7 +159,6 @@ async function writeAuditLog(payload) {
 }
 
 function normalizeType(type) {
-  // โ… NEW: pricing = ItemMasterPrintOnDeph (must be first)
   if (!["pricing", "master", "maintenance"].includes(type)) {
     throw new functions.https.HttpsError("invalid-argument", "Invalid upload type");
   }
@@ -179,7 +175,6 @@ async function acquireLock(lockOwner, type, fileMeta) {
       throw new functions.https.HttpsError("failed-precondition", `Upload in progress by ${lock.by || "unknown"}`);
     }
 
-    // โ… NEW prerequisite: pricing must be ready before master/maintenance
     const pricingReady = !!(data.pricing && data.pricing.isReady);
     if ((type === "master" || type === "maintenance") && !pricingReady) {
       throw new functions.https.HttpsError("failed-precondition", "ItemMasterPrintOnDeph (pricing) not uploaded yet");
@@ -207,19 +202,17 @@ function chunkArray(arr, size) {
   return out;
 }
 
-// Keep ops safe
 const MAX_OPS_PER_BATCH = 400;
 
 function safeStr(x) { return (x === undefined || x === null) ? "" : String(x).trim(); }
 function safeNum(x) { const n = Number(x); return Number.isFinite(n) ? n : 0; }
 
-// โ… Step 1 = PRICING (ItemMasterPrintOnDeph) - create/upsert base products
 function mapPricingRow(row) {
   const itemCode = safeStr(row.Itemcode || row.ItemCode || row.ProductCode);
   if (!itemCode) return null;
 
   const name = safeStr(row.Description || row["Description"]);
-  const barcode = safeStr(row.Barcode || row.BARCODE); // if present in file; ok if empty
+  const barcode = safeStr(row.Barcode || row.BARCODE);
 
   const doc = {
     itemCode,
@@ -245,7 +238,6 @@ function mapPricingRow(row) {
   return { itemCode, barcode, doc };
 }
 
-// โ… Step 2 = MASTER (ProductAllDept) - enrich/merge only (no need to exist check now, but ok)
 function mapMasterRow(row) {
   const itemCode = safeStr(row.ProductCode || row.Itemcode || row.ItemCode || row.ID);
   const name = safeStr(row.ProductDesc || row.Description || row.Name);
@@ -294,6 +286,8 @@ function mapMaintenanceRow(row) {
   return { itemCode, upd };
 }
 
+// ==================== AUTH FUNCTIONS ====================
+
 exports.bootstrapAdmin = functions.region(REGION).https.onCall(async (data, context) => {
   const email = getAuthEmail(context);
   const idCode = safeStr(data?.idCode);
@@ -301,19 +295,15 @@ exports.bootstrapAdmin = functions.region(REGION).https.onCall(async (data, cont
   if (!idCode || !pin) throw new functions.https.HttpsError("invalid-argument", "idCode and pin required");
 
   await getDb().runTransaction(async (tx) => {
-    // Atomically check for admin existence inside the transaction
     const bootstrapMarker = await tx.get(getBootstrapAdminDoc());
     if (bootstrapMarker.exists && bootstrapMarker.data()?.exists) {
       throw new functions.https.HttpsError("failed-precondition", "Admin already exists");
     }
     
-    // As a secondary guard, also check the collection group if supported.
     const existingAdmin = await getDb().collectionGroup("ids").where("role", "==", "admin").limit(1).get();
     if (!existingAdmin.empty) {
-        // If an admin exists but the marker doc doesn't, something is inconsistent.
-        // Set the marker and throw to prevent new admin creation.
-        tx.set(getBootstrapAdminDoc(), { exists: true, inconsistentState: true }, { merge: true });
-        throw new functions.https.HttpsError("failed-precondition", "Admin already exists (inconsistent state detected)");
+      tx.set(getBootstrapAdminDoc(), { exists: true, inconsistentState: true }, { merge: true });
+      throw new functions.https.HttpsError("failed-precondition", "Admin already exists (inconsistent state detected)");
     }
 
     const indexRef = getIdIndex().doc(idCode);
@@ -336,20 +326,20 @@ exports.bootstrapAdmin = functions.region(REGION).https.onCall(async (data, cont
       pinAlgo,
       pinAttempts: 0,
       pinResetRequired: false,
-        createdAt: nowTs(),
-        updatedAt: nowTs(),
-        createdBy: "bootstrap",
-        createdByUid: context.auth.uid
-      });
-      tx.set(indexRef, { idCode, email, createdAt: nowTs() });
-      tx.set(getBootstrapAdminDoc(), {
-        exists: true,
-        email,
-        idCode,
-        createdAt: nowTs(),
-        createdByUid: context.auth?.uid || null
-      }, { merge: true });
+      createdAt: nowTs(),
+      updatedAt: nowTs(),
+      createdBy: "bootstrap",
+      createdByUid: context.auth.uid
     });
+    tx.set(indexRef, { idCode, email, createdAt: nowTs() });
+    tx.set(getBootstrapAdminDoc(), {
+      exists: true,
+      email,
+      idCode,
+      createdAt: nowTs(),
+      createdByUid: context.auth?.uid || null
+    }, { merge: true });
+  });
 
   await writeAuditLog({
     action: "bootstrap_admin",
@@ -363,7 +353,6 @@ exports.bootstrapAdmin = functions.region(REGION).https.onCall(async (data, cont
   return { ok: true };
 });
 
-// HTTPS REST fallback with CORS + body validation (for clients not using httpsCallable)
 exports.bootstrapAdminHttp = functions.region(REGION).https.onRequest((req, res) => {
   cors(req, res, async () => {
     try {
@@ -374,10 +363,8 @@ exports.bootstrapAdminHttp = functions.region(REGION).https.onRequest((req, res)
       const { idCode, pin } = req.body || {};
       if (!idCode || !pin) return res.status(400).json({ error: "idCode and pin required" });
 
-      // Require Firebase Auth token (should be injected by proxy/emulator middleware)
       try { requireAuth({ auth: req.auth || req.user }); } catch (e) { return res.status(401).json({ error: e.message }); }
 
-      // Reuse callable logic by invoking directly
       const callable = exports.bootstrapAdmin;
       const result = await callable.run({ data: { idCode, pin }, context: { auth: req.auth || req.user } });
       return res.status(200).json(result);
@@ -752,7 +739,6 @@ exports.uploadChunk = functions.region(REGION).https.onCall(async (data, context
   const ops = [];
 
   if (type === "pricing") {
-    // Step 1: upsert products base from ItemMasterPrintOnDeph
     for (const r of rows) {
       const mapped = mapPricingRow(r);
       if (!mapped) { invalid++; continue; }
@@ -766,7 +752,6 @@ exports.uploadChunk = functions.region(REGION).https.onCall(async (data, context
       processed++; matched++;
     }
   } else if (type === "master") {
-    // Step 2: merge ProductAllDept (only for existing codes is optional, but we'll just merge)
     for (const r of rows) {
       const mapped = mapMasterRow(r);
       if (!mapped) { invalid++; continue; }
@@ -780,7 +765,6 @@ exports.uploadChunk = functions.region(REGION).https.onCall(async (data, context
       processed++; matched++;
     }
   } else if (type === "maintenance") {
-    // Step 3: update only if product exists
     const codes = [];
     const mappedRows = [];
     for (const r of rows) {
@@ -879,7 +863,6 @@ exports.abortUpload = functions.region(REGION).https.onCall(async (data, context
 exports.setAdminRole = functions
   .region('asia-southeast1')
   .https.onCall(async (data, context) => {
-    // Only existing admins can set roles
     if (!context.auth || !context.auth.token.admin) {
       throw new functions.https.HttpsError(
         'permission-denied',
@@ -921,5 +904,79 @@ exports.setFirstAdmin = functions
     res.status(410).send("setFirstAdmin disabled");
   });
 
-
-
+// reCAPTCHA Enterprise verification
+exports.verifyRecaptcha = functions
+  .region("asia-southeast1")
+  .https.onCall(async (data, context) => {
+    const { token, action } = data || {};
+    
+    if (!token) {
+      throw new functions.https.HttpsError('invalid-argument', 'reCAPTCHA token is required');
+    }
+    
+    const projectId = process.env.GCLOUD_PROJECT || "boots-4340-project";
+    const siteKey = process.env.RECAPTCHA_SITE_KEY || "6Lc71z4sAAAAAMxG25t_oi47_986McgLXdfbTWh9";
+    const expectedAction = action || "SETUP";
+    
+    try {
+      const { RecaptchaEnterpriseServiceClient } = require('@google-cloud/recaptcha-enterprise');
+      
+      const client = new RecaptchaEnterpriseServiceClient();
+      const projectName = `projects/${projectId}`;
+      
+      const request = {
+        parent: projectName,
+        assessment: {
+          event: {
+            token: token,
+            siteKey: siteKey,
+          },
+        },
+      };
+      
+      const [assessment] = await client.createAssessment(request);
+      
+      if (!assessment.tokenProperties.valid) {
+        console.error('Invalid reCAPTCHA token:', assessment.tokenProperties.invalidReason);
+        return {
+          success: false,
+          error: 'Invalid reCAPTCHA token',
+          reason: assessment.tokenProperties.invalidReason,
+        };
+      }
+      
+      if (assessment.tokenProperties.action !== expectedAction) {
+        console.error('Action mismatch:', assessment.tokenProperties.action, 'vs', expectedAction);
+        return {
+          success: false,
+          error: 'reCAPTCHA action mismatch',
+          expectedAction: expectedAction,
+          actualAction: assessment.tokenProperties.action,
+        };
+      }
+      
+      const score = assessment.riskAnalysis.score;
+      const reasons = assessment.riskAnalysis.reasons || [];
+      
+      console.log('reCAPTCHA verified:', {
+        score: score,
+        action: assessment.tokenProperties.action,
+        reasons: reasons.map(r => r.toString()),
+      });
+      
+      const isHuman = score >= 0.5;
+      
+      return {
+        success: true,
+        score: score,
+        isHuman: isHuman,
+        action: assessment.tokenProperties.action,
+        reasons: reasons.map(r => r.toString()),
+        assessmentName: assessment.name,
+      };
+      
+    } catch (error) {
+      console.error('reCAPTCHA verification error:', error);
+      throw new functions.https.HttpsError('internal', `reCAPTCHA verification failed: ${error.message}`);
+    }
+  });

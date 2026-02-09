@@ -16,6 +16,7 @@ import { ReportsPage } from "@/pages/ReportsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ItemSearchPage } from "@/pages/ItemSearchPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import SetupPage from "@/pages/SetupPage";
 
 const router = createBrowserRouter([
   // Auth routes (public)
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
   { path: "/auth/select-profile", element: <SelectProfile /> },
   { path: "/auth/pin", element: <EnterPin /> },
   { path: "/auth/change-pin", element: <ChangePin /> },
+  { path: "/setup", element: <SetupPage /> },
 
   // Post-login default page
   {

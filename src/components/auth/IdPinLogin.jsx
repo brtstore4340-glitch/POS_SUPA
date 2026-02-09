@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, LogOut, KeySquare, User, Moon, Sun, Loader2 } from 'lucide-react';
 import { useAuth } from '@/modules/auth/AuthContext';
-import { bootstrapAdmin } from '@/services/rbacService';
 import { ServerStatus } from '@/components/ui/ServerStatus';
 
 export default function IdPinLogin() {
@@ -86,8 +85,7 @@ export default function IdPinLogin() {
     }
     setBootstrapLoading(true);
     try {
-      await bootstrapAdmin({ idCode: bootstrapId, pin: bootstrapPin });
-      await loadIds();
+            await loadIds();
       setSelectedId(bootstrapId);
       setBootstrapPin('');
     } catch (err) {

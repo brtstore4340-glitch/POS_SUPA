@@ -15,6 +15,7 @@
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {
+    "@google-cloud/recaptcha-enterprise": "^5.10.0",
     "cors": "^2.8.5",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^7.0.5"

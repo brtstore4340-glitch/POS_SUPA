@@ -235,6 +235,7 @@ export function AuthProvider({ children }) {
       firebaseUser: fbUser,
       fbUser,
       loading,
+      authReady: !loading,
       reason,
       
       // Session/Profile

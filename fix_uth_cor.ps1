@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ⭐ ประกาศ loadUserIds เพียงครั้งเดียว ไว้ก่อน useEffect
+  // Load user IDs
   const loadUserIds = useCallback(async (userId) => {
     if (!userId) {
       setIds([]);
@@ -44,45 +44,24 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      console.log('📡 Loading IDs for user:', userId);
-      
       const q = query(
         collection(db, "ids"),
         where("userId", "==", userId)
       );
-      
       const snapshot = await getDocs(q);
-      
-      console.log('📊 Query result:', {
-        empty: snapshot.empty,
-        size: snapshot.size,
-        docs: snapshot.docs.length
-      });
-      
       const userIds = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
       setIds(userIds);
-      console.log('✅ Loaded user IDs:', userIds);
-      
-      return userIds;
+      console.log("✅ Loaded user IDs:", userIds.length);
     } catch (error) {
-      console.error('❌ Error loading IDs:', error);
-      console.error('Error details:', {
-        code: error.code,
-        message: error.message,
-        customData: error.customData
-      });
-      
+      console.error("❌ Failed to load user IDs:", error);
       setIds([]);
-      setAuthError(error);
-      
-      return [];
     }
   }, []);
 
+  // Verify PIN
   const verifyPin = useCallback(async (idCode, pin) => {
     try {
       if (!idCode || !pin) {
@@ -105,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error("This ID is not active");
       }
 
+      // Set session
       const sessionData = {
         idCode,
         role: data.role,
@@ -124,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [setLastIdCode]);
 
+  // Sign out
   const signOut = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
@@ -137,12 +118,13 @@ export const AuthProvider = ({ children }) => {
     }
   }, [setLastIdCode]);
 
+  // Clear session (logout from ID but keep Firebase auth)
   const clearSession = useCallback(() => {
     setSession(null);
     console.log("ℹ️ Session cleared");
   }, []);
 
-  // ⭐ useEffect ใช้ loadUserIds ที่ประกาศไว้ข้างบน
+  // Initialize auth listener
   useEffect(() => {
     let mounted = true;
     
@@ -187,9 +169,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, [loadUserIds]);
 
-  // ⚠️ ลบส่วนนี้ออก - ไม่ต้องประกาศ loadUserIds อีกรอบ
-  // const loadUserIds = useCallback(...) <- ลบทิ้ง
-
   const value = useMemo(() => ({
     firebaseUser,
     session,
@@ -218,6 +197,7 @@ export const AuthProvider = ({ children }) => {
     loadUserIds,
   ]);
 
+  // Show error state if auth initialization failed
   if (authError && !firebaseUser) {
     return (
       <div style={{ 

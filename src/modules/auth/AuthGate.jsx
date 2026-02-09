@@ -7,7 +7,7 @@ import PinReset from "@/components/auth/PinReset";
 import { ServerStatus } from "@/components/ui/ServerStatus";
 
 export function AuthGate({ children }) {
-  const { firebaseUser, session, loading, authLoading } = useAuth();
+  const { firebaseUser, session, loading } = useAuth();
 
   // Show loading spinner while checking auth state
   if (loading) {
