@@ -7,6 +7,7 @@ import { ServerStatus } from '@/components/ui/ServerStatus';
 export default function IdPinLogin() {
   // BEGIN: FUNCTION ZONE (DO NOT TOUCH)
   const { firebaseUser, ids, lastIdCode, loadIds, verifyPin, signOut } = useAuth();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(lastIdCode || '');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');

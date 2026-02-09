@@ -6,15 +6,18 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { auth, db } from "../config/firebase";
-import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+// Note: These Firebase imports are now replaced by Supabase services.
+// import { auth, db } from "../config/firebase";
+// import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+// import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { rbacService } from "../services/rbacService"; // For PIN verification
+import { authService } from "../features/auth/services/authService"; // For auth state
 
 const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
-  const [firebaseUser, setFirebaseUser] = useState(null);
-  const [session, setSession] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null); // This now represents the Supabase user
+  const [session, setSession] = useState(null); // This is the PIN-verified session
   const [ids, setIds] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
@@ -36,23 +39,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Load user IDs
-  const loadUserIds = useCallback(async (userId) => {
-    if (!userId) {
+  // Load user IDs/profiles
+  const loadUserIds = useCallback(async (user) => {
+    if (!user) {
       setIds([]);
       return;
     }
-
     try {
-      const q = query(
-        collection(db, "ids"),
-        where("userId", "==", userId)
-      );
-      const snapshot = await getDocs(q);
-      const userIds = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Using rbacService which should call a Supabase function
+      const userIds = await rbacService.listMyIds();
       setIds(userIds);
       console.log("✅ Loaded user IDs:", userIds.length);
     } catch (error) {
@@ -61,37 +56,20 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Verify PIN
+  // Verify PIN securely via server-side function
   const verifyPin = useCallback(async (idCode, pin) => {
     try {
       if (!idCode || !pin) {
         throw new Error("ID Code and PIN are required");
       }
-
-      const idDoc = await getDoc(doc(db, "ids", idCode));
       
-      if (!idDoc.exists()) {
-        throw new Error("Invalid ID Code");
-      }
+      // Call the secure Supabase Edge Function
+      const sessionData = await rbacService.verifyIdPin({ idCode, pin });
 
-      const data = idDoc.data();
-      
-      if (data.pin !== pin) {
-        throw new Error("Invalid PIN");
+      if (!sessionData) {
+        // Use a generic error message for security
+        throw new Error("Invalid credentials");
       }
-
-      if (data.status !== "active") {
-        throw new Error("This ID is not active");
-      }
-
-      // Set session
-      const sessionData = {
-        idCode,
-        role: data.role,
-        displayName: data.displayName || idCode,
-        userId: data.userId,
-        menus: data.menus || [],
-      };
 
       setSession(sessionData);
       setLastIdCode(idCode);
@@ -100,14 +78,15 @@ export const AuthProvider = ({ children }) => {
       return { success: true, session: sessionData };
     } catch (error) {
       console.error("❌ PIN verification failed:", error);
-      return { success: false, error: error.message };
+      // Surface only the generic error message
+      return { success: false, error: "Invalid credentials" };
     }
   }, [setLastIdCode]);
 
   // Sign out
   const signOut = useCallback(async () => {
     try {
-      await firebaseSignOut(auth);
+      await authService.signOut();
       setSession(null);
       setIds([]);
       setLastIdCode("");
@@ -118,54 +97,41 @@ export const AuthProvider = ({ children }) => {
     }
   }, [setLastIdCode]);
 
-  // Clear session (logout from ID but keep Firebase auth)
+  // Clear session (logout from ID but keep Supabase auth)
   const clearSession = useCallback(() => {
     setSession(null);
     console.log("ℹ️ Session cleared");
   }, []);
 
-  // Initialize auth listener
+  // Initialize auth listener for Supabase
   useEffect(() => {
-    let mounted = true;
-    
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (user) => {
-        if (!mounted) return;
-        
-        try {
-          setFirebaseUser(user);
-          setAuthError(null);
-          
-          if (user) {
-            console.log("✅ User authenticated:", user.email);
-            await loadUserIds(user.uid);
-          } else {
-            console.log("ℹ️ No user authenticated");
-            setSession(null);
-            setIds([]);
-          }
-        } catch (error) {
-          console.error("❌ Error in auth state change:", error);
-          setAuthError(error);
-        } finally {
-          if (mounted) {
-            setAuthLoading(false);
-          }
+    setAuthLoading(true);
+    const subscription = authService.onAuthStateChange(async (session) => {
+      try {
+        const user = session?.user ?? null;
+        setFirebaseUser(user);
+        setAuthError(null);
+
+        if (user) {
+          console.log("✅ User authenticated:", user.email);
+          await loadUserIds(user);
+        } else {
+          console.log("ℹ️ No user authenticated");
+          setSession(null);
+          setIds([]);
         }
-      },
-      (error) => {
-        if (!mounted) return;
-        
-        console.error("❌ Auth state change error:", error);
+      } catch (error) {
+        console.error("❌ Error in auth state change:", error);
         setAuthError(error);
+      } finally {
         setAuthLoading(false);
       }
-    );
+    });
 
     return () => {
-      mounted = false;
-      unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
     };
   }, [loadUserIds]);
 
@@ -197,6 +163,11 @@ export const AuthProvider = ({ children }) => {
     loadUserIds,
   ]);
 
+  // Return a loading state while checking authentication.
+  if (authLoading) {
+    return null; // Or a loading spinner component
+  }
+  
   // Show error state if auth initialization failed
   if (authError && !firebaseUser) {
     return (
@@ -223,7 +194,8 @@ export const AuthProvider = ({ children }) => {
             cursor: "pointer"
           }}
         >
-          รีโหลดหน้า
+          {/* Replaced with a placeholder for i18n */}
+          {"Reload Page"}
         </button>
       </div>
     );

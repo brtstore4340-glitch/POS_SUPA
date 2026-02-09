@@ -9,8 +9,7 @@ export const bootstrapFirestore = async () => {
       throw new Error('No user authenticated');
     }
 
-    console.log('🔧 Bootstrapping Firestore for user:', user.uid);
-
+    console.log('🔧 Bootstrapping Firestore...');
     // ตรวจสอบว่ามี collection 'ids' หรือยัง
     const idsRef = collection(db, 'ids');
     const snapshot = await getDocs(idsRef);

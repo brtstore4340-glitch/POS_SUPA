@@ -1,33 +1,96 @@
-const demo = [
-  { id: "p1", sku: "SKU-001", name: "Cleansing Gel", category: "Skincare", price: 390, is_active: true, barcode: ["8850000000001"] },
-  { id: "p2", sku: "SKU-002", name: "Vitamin C Serum", category: "Skincare", price: 990, is_active: true, barcode: ["8850000000002"] },
-  { id: "p3", sku: "SKU-003", name: "Sunscreen SPF50", category: "Suncare", price: 690, is_active: true, barcode: ["8850000000003"] },
-  { id: "p4", sku: "SKU-004", name: "Moisturizer Cream", category: "Skincare", price: 790, is_active: true, barcode: ["8850000000004"] },
-  { id: "p5", sku: "SKU-005", name: "Lip Balm", category: "Makeup", price: 199, is_active: true, barcode: ["8850000000005"] }
-];
+import { supabase } from '../../../../supabase/client';
 
 export const productService = {
   async listProducts({ q = "", category } = {}) {
-    const query = String(q).toLowerCase().trim();
-    let items = demo.filter((x) => x.is_active);
-    if (category && category !== "All") items = items.filter((x) => x.category === category);
-    if (query) items = items.filter((x) => x.name.toLowerCase().includes(query) || x.sku?.toLowerCase().includes(query));
-    return { items };
+    try {
+      let query = supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true);
+
+      if (category && category !== "All") {
+        query = query.eq('category', category);
+      }
+
+      if (q) {
+        query = query.or(`name.ilike.%${q}%,sku.ilike.%${q}%`);
+      }
+
+      const { data, error } = await query.order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        return { items: [] };
+      }
+
+      return { items: data };
+    } catch (error) {
+      console.error('An unexpected error occurred while fetching products:', error);
+      return { items: [] };
+    }
   },
 
   async getProductByBarcode(barcode) {
     const code = String(barcode || "").trim();
     if (!code) return null;
-    return demo.find((p) => Array.isArray(p.barcode) && p.barcode.includes(code)) || null;
+
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .contains('barcode', [code])
+        .limit(1)
+        .single();
+
+      if (error) {
+        // .single() throws an error if no row is found, which is expected.
+        // We only log if it's not a "not found" error.
+        if (!error.message.includes('No rows found')) {
+            console.error('Error fetching product by barcode:', error);
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return null;
+    }
   },
 
   async upsertProduct(product) {
-    // TODO: Firestore upsert with validation
-    return { ok: true, product };
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .upsert(product)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error upserting product:', error);
+        return { ok: false, error };
+      }
+
+      return { ok: true, product: data };
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return { ok: false, error };
+    }
   },
 
   async listCategories() {
-    const set = new Set(demo.filter((x) => x.is_active).map((x) => x.category));
-    return ["All", ...Array.from(set).sort()];
+    try {
+        const { data, error } = await supabase.rpc('get_distinct_categories');
+
+        if (error) {
+            console.error('Error fetching categories:', error);
+            return ["All"];
+        }
+
+        return ["All", ...data.sort()];
+    } catch(error) {
+        console.error('An unexpected error occurred:', error);
+        return ["All"];
+    }
   }
 };

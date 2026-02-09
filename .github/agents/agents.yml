@@ -1,0 +1,8 @@
+agents:
+  - orchestrator
+  - planner
+  - supabase-architect
+  - app-coder
+  - runner-executor
+  - debugger
+  - reviewer-gatekeeper

@@ -1,0 +1,25 @@
+version: 1
+agents:
+  enabled: true
+  custom_agents:
+    - name: plannerandreview
+      description: Plan tasks end-to-end, review requirements, and produce acceptance criteria + risk checks.
+      path: .github/agents/01_plannerandreview.md
+    - name: coderanddebugger
+      description: Implement code changes, debug build/runtime issues, and propose safe patches with rollback.
+      path: .github/agents/02_coderanddebugger.md
+    - name: devopsandrelease
+      description: CI/CD, GitHub Actions, Firebase/Vercel deploy, env/secrets, release workflows and reliability.
+      path: .github/agents/03_devopsandrelease.md
+    - name: dataandautomation
+      description: Excel/CSV ingestion, ETL rules, validation, Firestore batch writes, and automation scripts.
+      path: .github/agents/04_dataandautomation.md
+    - name: qatestandquality
+      description: Test strategy, E2E/unit tests, quality gates, bug reproduction, and regression prevention.
+      path: .github/agents/05_qatestandquality.md
+    - name: securityandcompliance
+      description: Threat modeling, secrets handling, auth/roles, Firestore rules, and compliance-minded guidance.
+      path: .github/agents/06_securityandcompliance.md
+    - name: productandux
+      description: UX/UI consistency, flows, IA, and product acceptance criteria aligned to business needs.
+      path: .github/agents/07_productandux.md

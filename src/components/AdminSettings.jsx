@@ -68,7 +68,7 @@ export default function AdminSettings({ onClose, onBack, variant = 'page' }) {
             )}
             onClick={() => uploadStatus !== 'uploading' && fileInputRef.current?.click()}
           >
-            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".xlsx,.xls,.csv" className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".csv" className="hidden" />
 
             <div className="flex flex-col items-center gap-3">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow-sm">
@@ -76,7 +76,7 @@ export default function AdminSettings({ onClose, onBack, variant = 'page' }) {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-700">{selectedFile ? selectedFile.name : 'Click to select file'}</h3>
-                <p className="text-sm text-slate-400">{selectedFile ? `${(selectedFile.size / 1024).toFixed(1)} KB` : 'Supports Excel (.xlsx, .xls) or CSV'}</p>
+                <p className="text-sm text-slate-400">{selectedFile ? `${(selectedFile.size / 1024).toFixed(1)} KB` : 'CSV only (Excel disabled)'}</p>
               </div>
             </div>
           </div>

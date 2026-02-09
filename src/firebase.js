@@ -1,5 +1,5 @@
 import { browserLocalPersistence, setPersistence } from "firebase/auth";
-import { firebaseConfig } from "./config/firebaseConfig";
+import { firebaseConfig } from "./config/firebase";
 import {
   app,
   auth,

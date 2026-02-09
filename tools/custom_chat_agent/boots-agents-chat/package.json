@@ -1,0 +1,67 @@
+{
+  "name": "boots-agents-chat",
+  "displayName": "Boots Agents Chat",
+  "description": "Custom chat participant that loads foundry-agents (or any folder you set) and talks to an OpenAI-compatible endpoint.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onChatParticipant:bootsagents"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "bootsagents",
+        "name": "Boots Agents",
+        "description": "Chat using agents from foundry-agents.",
+        "isSticky": true
+      }
+    ],
+    "configuration": {
+      "title": "Boots Agents Chat",
+      "properties": {
+        "bootsagents.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "OpenAI-compatible endpoint (base or full /v1/chat/completions)."
+        },
+        "bootsagents.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key (if required)."
+        },
+        "bootsagents.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model name to send to the endpoint."
+        },
+        "bootsagents.agentsRoot": {
+          "type": "string",
+          "default": "foundry-agents",
+          "description": "Path (relative to workspace) where agent files live."
+        },
+        "bootsagents.includeCopilotInstructions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include .github/copilot-instructions.md in the system prompt if present."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "supabase": "^2.76.3",
+    "typescript": "^5.9.3",
+    "vsce": "^2.15.0"
+  }
+}

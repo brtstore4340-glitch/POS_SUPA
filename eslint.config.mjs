@@ -6,18 +6,28 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 export default [
   {
     ignores: [
-      "_boot/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/coverage/**",
+      "**/node_modules/**",
+      "**/.backup-*/**",
+      "**/.backup-eslint-*/**",
+      "**/.backup-eslint-fix*/**",
       "**/*.min.js",
+      "**/*.min.*",
       ".diag/**",
+      ".firebase/**",
+      ".boots-logs/**",
+      "_boot/**",
+      "ai-backups/**",
+      "tools/logs/**",
+      "functions/**",
+      "index_fixed.js",
+      "service-account.json",
+      "src/toggle/**",
     ],
   },
   {
-    ignores: [
-      "ai-backups/**",
-      ".backup-*/**",
-      "tools/logs/**"
-    ]
-  },{
     // Node/CommonJS files: allow require/module/exports/process
     files: [
       "**/vite.config.js",
@@ -36,21 +46,6 @@ export default [
       }
     }
   },
-{
-    // Ignore generated / vendor / backup snapshots (not source-of-truth)
-    ignores: [
-      "**/.backup-*/**",
-      "**/.backup-eslint-*/**",
-      "**/.backup-eslint-fix*/**",
-      "**/dist/**",
-      "**/build/**",
-      "**/coverage/**",
-      // Vendor/minified legacy files (eslint explodes on them)
-      "src/toggle/**",
-      "src/toggle/jquery.js"
-    ],
-  },
-{ ignores: ['dist', 'node_modules', '.backup-eslint-parsing-*', 'functions', '.firebase', '**/*.min.*'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

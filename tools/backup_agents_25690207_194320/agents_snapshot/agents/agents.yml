@@ -1,0 +1,6 @@
+agents:
+  - code-reviewer
+  - documentation-writer
+  - bug-investigator
+  - performance-optimizer
+  - security-auditor

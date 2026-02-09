@@ -1,9 +1,10 @@
 ﻿import Papa from "papaparse";
-import * as XLSX from "xlsx";
+import { readXlsxSheetToJson } from "../utils/safeXlsx";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from "../firebase";
 
 const firebaseRegion = import.meta.env.VITE_FIREBASE_REGION || "asia-southeast1";
+const XLSX_DISABLED = String(import.meta.env.VITE_DISABLE_XLSX || "").toLowerCase() === "true";
 const functions = getFunctions(app, firebaseRegion);
 const beginUpload = httpsCallable(functions, "beginUpload");
 const uploadChunk = httpsCallable(functions, "uploadChunk");
@@ -31,11 +32,13 @@ export async function parseCsv(file) {
 }
 
 export async function parseXls(file) {
-  const ab = await file.arrayBuffer();
+  if (XLSX_DISABLED) {
+    throw new Error("Excel uploads (.xlsx/.xls) are disabled. Use CSV instead.");
+  }
   const checksum = await sha256(String(file.size) + ":" + file.name);
-  const wb = XLSX.read(ab, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  const { rows } = await readXlsxSheetToJson(file, {
+    sheetToJsonOptions: { defval: "" },
+  });
   return { rows, checksum };
 }
 

@@ -2,6 +2,7 @@ import * as React from "react";
 import { AuthGate } from "@/modules/auth/AuthGate";
 import { AppRouter } from "@/router/AppRouter";
 import SetupPage from "./pages/SetupPage";
+import { SupabaseAuthProvider } from '../supabase/SupabaseAuthProvider.jsx';
 
 export default function App() {
   // Handle the setup route explicitly if it exists outside the main AppRouter
@@ -15,8 +16,10 @@ export default function App() {
 
   // Default application flow
   return (
-    <AuthGate>
-      <AppRouter />
-    </AuthGate>
+    <SupabaseAuthProvider>
+      <AuthGate>
+        <AppRouter />
+      </AuthGate>
+    </SupabaseAuthProvider>
   );
 }

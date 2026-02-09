@@ -2,7 +2,9 @@ import { db } from '../firebase';
 import { functions } from '../firebase';
 import { collection, doc, getDoc, getDocs, setDoc, writeBatch, getCountFromServer, serverTimestamp, query, limit, where/* , orderBy, startAt, endAt */ } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import * as XLSX from 'xlsx';
+import { readXlsxSheetToJson } from '../utils/safeXlsx';
+
+const XLSX_DISABLED = String(import.meta.env?.VITE_DISABLE_XLSX || "").toLowerCase() === "true";
 
 // --- Helpers ---
 const generateKeywords = (text) => {
@@ -158,14 +160,13 @@ export const posService = {
     return processed;
   },
   uploadExcelUpdate: async (file, mappingLogic, onProgress, uploadKey) => {
+    if (XLSX_DISABLED) {
+      throw new Error("Excel uploads (.xlsx/.xls) are disabled. Use CSV instead.");
+    }
     // 3.1 Read File
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer);
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    
-    // Convert to Array of Arrays (Row 0 = Header)
-    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    const { rows } = await readXlsxSheetToJson(file, {
+      sheetToJsonOptions: { header: 1, defval: '' },
+    });
 
     const lastUpdateISO = new Date().toISOString();
 
@@ -374,7 +375,5 @@ export const posService = {
   },
   createOrder: async (orderData) => { /*...*/ }
 };
-
-
 
 

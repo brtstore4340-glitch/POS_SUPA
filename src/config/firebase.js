@@ -66,4 +66,4 @@ try {
   throw error;
 }
 
-export { app, auth, db };
+export { app, auth, db, firebaseConfig };

@@ -1,56 +1,53 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
+// src/services/rbacService.js
+import { supabase } from '../../supabase/client';
 
-// Reuse a single functions instance so callables don't re-init each call.
-const listMyIdsFn = httpsCallable(functions, 'listMyIds');
-const verifyIdPinFn = httpsCallable(functions, 'verifyIdPin');
-const createIdFn = httpsCallable(functions, 'createId');
-const updateIdFn = httpsCallable(functions, 'updateId');
-const resetPinFn = httpsCallable(functions, 'resetPin');
-const setPinFn = httpsCallable(functions, 'setPin');
-const searchIdsFn = httpsCallable(functions, 'searchIds');
-const getAuditLogsFn = httpsCallable(functions, 'getAuditLogs');
-
-
-
-export async function listMyIds() {
-  const res = await listMyIdsFn();
-  return res.data?.ids || [];
+/**
+ * Invokes a Supabase Edge Function.
+ * @param {string} functionName - The name of the function to invoke.
+ * @param {Object} payload - The payload to send to the function.
+ * @returns {Promise<Object>} The data returned from the function.
+ */
+async function invokeFunction(functionName, payload) {
+  const { data, error } = await supabase.functions.invoke(functionName, {
+    body: payload,
+  });
+  if (error) throw error;
+  return data;
 }
 
-export async function verifyIdPin(payload) {
-  const res = await verifyIdPinFn(payload);
-  return res.data?.session;
-}
+export const rbacService = {
+  async listMyIds() {
+    return invokeFunction('listMyIds');
+  },
 
-export async function createId(payload) {
-  const res = await createIdFn(payload);
-  return res.data;
-}
+  async verifyIdPin(payload) {
+    return invokeFunction('verifyIdPin', payload);
+  },
 
-export async function updateId(payload) {
-  const res = await updateIdFn(payload);
-  return res.data;
-}
+  async createId(payload) {
+    return invokeFunction('createId', payload);
+  },
 
-export async function resetPin(payload) {
-  const res = await resetPinFn(payload);
-  return res.data;
-}
+  async updateId(payload) {
+    return invokeFunction('updateId', payload);
+  },
 
-export async function setPin(payload) {
-  const res = await setPinFn(payload);
-  return res.data;
-}
+  async resetPin(payload) {
+    return invokeFunction('resetPin', payload);
+  },
 
-export async function searchIds(payload) {
-  const res = await searchIdsFn(payload);
-  return res.data?.ids || [];
-}
+  async setPin(payload) {
+    return invokeFunction('setPin', payload);
+  },
 
-export async function getAuditLogs(payload) {
-  const res = await getAuditLogsFn(payload);
-  return res.data?.logs || [];
-}
+  async searchIds(payload) {
+    return invokeFunction('searchIds', payload);
+  },
+
+  async getAuditLogs(payload) {
+    return invokeFunction('getAuditLogs', payload);
+  }
+};
+
 
 

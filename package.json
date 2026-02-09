@@ -13,14 +13,20 @@
         "test": "node -e \"console.log('test: skip (no tests configured yet)')\"",
         "lint:fix": "eslint . --fix -c eslint.config.mjs",
         "guard:build": "npm run lint || echo \"lint failed (soft-guard): fix gradually\" && npm run build",
-        "guard:build:strict": "npm run lint && npm run build"
+        "guard:build:strict": "npm run lint && npm run build",
+        "supabase:db:push": "supabase db push",
+        "supabase:deploy": "powershell -ExecutionPolicy Bypass -File ./deploy-supabase.ps1",
+        "supabase:deploy:start": "npm run supabase:deploy && npm run supabase:start",
+        "supabase:functions:deploy": "supabase functions deploy",
+        "supabase:start": "supabase start"
     },
     "dependencies": {
         "@radix-ui/react-dialog": "^1.1.15",
         "@radix-ui/react-slot": "^1.2.4",
+        "@supabase/supabase-js": "^2.39.8",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "firebase": "^12.8.0",
+        "firebase": "^10.15.0",
         "framer-motion": "^12.29.0",
         "lucide-react": "^0.542.0",
         "react": "^18.3.1",
@@ -32,9 +38,6 @@
         "xlsx": "^0.18.5"
     },
     "devDependencies": {
-        "@babel/eslint-parser": "^7.28.6",
-        "@babel/preset-env": "^7.28.6",
-        "@babel/preset-react": "^7.28.5",
         "@eslint/js": "^9.39.2",
         "@vitejs/plugin-react": "^4.3.1",
         "autoprefixer": "^10.4.20",
@@ -45,8 +48,9 @@
         "eslint-plugin-unused-imports": "^4.3.0",
         "globals": "^17.1.0",
         "postcss": "^8.4.41",
+        "supabase": "^2.76.3",
         "tailwindcss": "^3.4.10",
         "tailwindcss-animate": "^1.0.7",
-        "vite": "^5.4.2"
+        "vite": "^7.3.1"
     }
 }

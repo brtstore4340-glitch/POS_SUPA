@@ -1,12 +1,14 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Container } from "@/components/ui/grid";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ServerStatus } from "@/components/ui/ServerStatus";
 import { cn } from "@/lib/utils";
+import { fetchMenus } from "../../services/menuService";
 
-const navItems = [
+const staticNavItems = [
   { to: "/", label: "Dashboard" },
   { to: "/pos", label: "POS Terminal" },
   { to: "/item-search", label: "Item Search" },
@@ -34,6 +36,20 @@ function NavItem({ to, label }) {
 
 export function AppShell() {
   const location = useLocation();
+  const [dynamicNavItems, setDynamicNavItems] = useState([]);
+
+  useEffect(() => {
+    async function loadMenus() {
+      const menus = await fetchMenus();
+      // Map Supabase fields to NavItem props (e.g., route -> to)
+      const formattedMenus = menus.map(item => ({ ...item, to: item.route }));
+      setDynamicNavItems(formattedMenus);
+    }
+
+    loadMenus();
+  }, []);
+
+  const allNavItems = [...staticNavItems, ...dynamicNavItems].sort((a, b) => (a.order || 0) - (b.order || 0));
 
   return (
     <div className="min-h-screen">
@@ -45,7 +61,7 @@ export function AppShell() {
             <span className="font-bold text-xl text-slate-800 dark:text-slate-200">รายการขาย</span>
           </div>
           <nav className="flex flex-wrap gap-2 items-center">
-            {navItems.map((it) => (
+            {allNavItems.map((it) => (
               <NavItem key={it.to} to={it.to} label={it.label} />
             ))}
           </nav>

@@ -142,6 +142,21 @@
         "panel": "dedicated",
         "clear": true
       }
+    },
+    {
+      "label": "Review and Deploy Supabase",
+      "type": "shell",
+      "command": "npm run lint && npm run supabase:deploy",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": true
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

@@ -1,0 +1,32 @@
+{
+  "agents": [
+    {
+      "name": "plannerandreview",
+      "path": "agents/01_plannerandreview.md"
+    },
+    {
+      "name": "coderanddebugger",
+      "path": "agents/02_coderanddebugger.md"
+    },
+    {
+      "name": "devopsandrelease",
+      "path": "agents/03_devopsandrelease.md"
+    },
+    {
+      "name": "dataandautomation",
+      "path": "agents/04_dataandautomation.md"
+    },
+    {
+      "name": "qatestandquality",
+      "path": "agents/05_qatestandquality.md"
+    },
+    {
+      "name": "securityandcompliance",
+      "path": "agents/06_securityandcompliance.md"
+    },
+    {
+      "name": "productandux",
+      "path": "agents/07_productandux.md"
+    }
+  ]
+}

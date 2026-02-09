@@ -1,267 +1,103 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { 
-  onAuthStateChanged, 
-  signOut,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInAnonymously
-} from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
-import { listMyIds } from "@/services/rbacService";
-
-/**
- * AuthContext
- * - Avoid impure calls during render (no Date.now() in render phase)
- * - Ensure functions referenced in effects are declared via useCallback
- */
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { authService } from '../../features/auth/services/authService';
+import { rbacService } from '../../services/rbacService'; // Assuming you have this service for PIN/profile logic
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [fbUser, setFbUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [reason, setReason] = useState(null);
-  const [selectedProfile, setSelectedProfile] = useState(null);
-  const [ids, setIds] = useState([]);
-  const [lastIdCode, setLastIdCode] = useState("");
   const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // New state for multi-step auth
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfile, setSelectedProfile] = useState(null);
 
-  const idleTimerRef = useRef(null);
-  const lastActiveRef = useRef(null);
-  const unsubAccountRef = useRef(null);
-
-  // Initialize refs in an effect (purity rule)
+  // Effect to handle session and user state from Supabase auth
   useEffect(() => {
-    if (lastActiveRef.current == null) lastActiveRef.current = Date.now();
-    return () => {};
-  }, []);
-
-  // Email login function
-  const loginEmail = useCallback(async (email, password) => {
-    try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      return { success: true, user: result.user };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }, []);
-
-  // Email signup function
-  const signupEmail = useCallback(async ({ email, password, displayName }) => {
-    try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      return { success: true, user: result.user };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }, []);
-
-  // Google sign-in function
-  const signInWithGoogle = useCallback(async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      return { success: true, user: result.user };
-    } catch (error) {
-      const code = error?.code || "";
-      if (code === "auth/operation-not-allowed") {
-        return {
-          success: false,
-          error: "Google sign-in is disabled for this Firebase project. Enable the Google provider in Firebase Console → Authentication → Sign-in method.",
-        };
-      }
-      return { success: false, error: error?.message || "Google sign-in failed." };
-    }
-  }, []);
-
-  // Anonymous login function
-  const loginAnonymous = useCallback(async () => {
-    try {
-      const result = await signInAnonymously(auth);
-      return { success: true, user: result.user };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }, []);
-
-  // Load IDs (profiles) for the current user
-  const loadIds = useCallback(async () => {
-    if (!fbUser) return [];
-    try {
-      const email = String(fbUser.email || "").trim().toLowerCase();
-      if (!email) {
-        setIds([]);
-        return [];
-      }
-      const profiles = await listMyIds();
-      setIds(profiles);
-      return profiles;
-    } catch (error) {
-      console.error("Error loading IDs:", error);
-      setIds([]);
-      return [];
-    }
-  }, [fbUser]);
-
-  // Verify PIN
-  const verifyPin = useCallback(async (idCode, pin) => {
-    if (!fbUser) throw new Error("Not authenticated");
-    
-    const profile = ids.find(p => (p.idCode || p.code || String(p)) === idCode);
-    if (!profile) throw new Error("ID not found");
-    
-    // For demo purposes, accept "1234" as the default PIN
-    // In production, this should verify against stored hash
-    if (pin === "1234") {
-      setSession({ idCode, profile });
-      setLastIdCode(idCode);
-      return;
-    }
-    
-    throw new Error("Invalid PIN");
-  }, [fbUser, ids]);
-
-  const logout = useCallback(async (r = "logout") => {
-    setReason(r);
-    setSelectedProfile(null);
-    setSession(null);
-
-    // cleanup listeners/timers
-    try {
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    } catch (_e) { void _e; }
-    idleTimerRef.current = null;
-
-    try {
-      if (typeof unsubAccountRef.current === "function") unsubAccountRef.current();
-    } catch (_e) { void _e; }
-    unsubAccountRef.current = null;
-
-    try {
-      await signOut(auth);
-    } catch (_e) {
-      // ignore signOut failures; still clear local state
-      void _e;
-    } finally {
-      setFbUser(null);
-    }
-  }, []);
-
-  const endAllSessions = useCallback(async () => {
-    // Placeholder: implement if you store session docs/tokens in Firestore
-    // For now, do a normal logout with a distinct reason.
-    await logout("endAllSessions");
-  }, [logout]);
-
-  // Auth state
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setFbUser(u ?? null);
-      setLoading(false);
-    });
-    return () => {
-      try { unsub(); } catch (_e) { void _e; }
-    };
-  }, []);
-
-  // Optional: account disabled watcher (Firestore)
-  useEffect(() => {
-    // cleanup old watcher
-    try {
-      if (typeof unsubAccountRef.current === "function") unsubAccountRef.current();
-    } catch (_e) { void _e; }
-    unsubAccountRef.current = null;
-
-    if (!fbUser) return () => {};
-    const email = String(fbUser.email || "").trim().toLowerCase();
-    if (!email) return () => {};
-
-    try {
-      const ref = doc(db, "accounts", email);
-      const unsub = onSnapshot(
-        ref,
-        (snap) => {
-          const data = snap?.data?.();
-          if (data?.disabled) {
-            void setReason("disabled");
-            setSelectedProfile(null);
-            setSession(null);
-            try { void signOut(auth); } catch (_e) { void _e; }
-          }
-        },
-        (_err) => {
-          // non-fatal
-          void _err;
-        }
-      );
-      unsubAccountRef.current = unsub;
-    } catch (_e) {
-      // If Firestore not configured, do nothing
-      void _e;
-    }
-
-    return () => {
+    const checkSession = async () => {
       try {
-        if (typeof unsubAccountRef.current === "function") unsubAccountRef.current();
-      } catch (_e) { void _e; }
-      unsubAccountRef.current = null;
+        const currentSession = await authService.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        if (currentSession?.user) {
+          // If user is logged in, fetch their profiles
+          const userProfiles = await rbacService.listMyIds();
+          setProfiles(userProfiles);
+        }
+      } catch (error) {
+        console.error("Error getting session:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [fbUser, logout]);
 
-  // Basic activity tracking (optional)
-  useEffect(() => {
-    const markActive = () => {
-      lastActiveRef.current = Date.now();
-    };
+    checkSession();
 
-    window.addEventListener("mousemove", markActive, { passive: true });
-    window.addEventListener("keydown", markActive, { passive: true });
-    window.addEventListener("touchstart", markActive, { passive: true });
+    const subscription = authService.onAuthStateChange((newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      if (!newSession) {
+        // Clear profiles on logout
+        setProfiles([]);
+        setSelectedProfile(null);
+      }
+      if (loading) setLoading(false);
+    });
 
     return () => {
-      window.removeEventListener("mousemove", markActive);
-      window.removeEventListener("keydown", markActive);
-      window.removeEventListener("touchstart", markActive);
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
     };
+  }, [loading]);
+
+  const login = useCallback(async (email, password) => {
+    const sessionData = await authService.signIn(email, password);
+    if (sessionData.user) {
+        // After login, fetch user profiles (IDs)
+        const userProfiles = await rbacService.listMyIds();
+        setProfiles(userProfiles);
+    }
+    return sessionData;
   }, []);
 
-  const value = useMemo(() => {
-    return {
-      // User
-      firebaseUser: fbUser,
-      fbUser,
-      loading,
-      authReady: !loading,
-      reason,
-      
-      // Session/Profile
-      session,
-      selectedProfile,
-      setSelectedProfile,
-      ids,
-      loadIds,
-      lastIdCode,
-      
-      // Auth functions
-      loginEmail,
-      signupEmail,
-      signInWithGoogle,
-      loginAnonymous,
-      verifyPin,
-      signOut: logout,
-      logout,
-      endAllSessions,
-      
-      // Refs
-      lastActiveRef,
-    };
-  }, [fbUser, loading, reason, selectedProfile, session, ids, lastIdCode, loginEmail, signupEmail, signInWithGoogle, loginAnonymous, verifyPin, logout, endAllSessions]);
+  const logout = useCallback(async () => {
+    await authService.signOut();
+    setSelectedProfile(null);
+    setProfiles([]);
+  }, []);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const verifyPin = useCallback(async (idCode, pin) => {
+    // This function will likely need to call a Supabase Edge Function
+    // via rbacService to verify the PIN securely without exposing hashes to the client.
+    try {
+        const verifiedProfile = await rbacService.verifyIdPin({ idCode, pin });
+        if (verifiedProfile) {
+            setSelectedProfile(verifiedProfile);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("PIN verification failed:", error);
+        return false;
+    }
+  }, []);
+
+  const value = {
+    session,
+    user,
+    loading,
+    login,
+    logout,
+    profiles,
+    selectedProfile,
+    setSelectedProfile,
+    verifyPin,
+  };
+
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

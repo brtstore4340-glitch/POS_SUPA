@@ -1,0 +1,103 @@
+{
+  "name": "foundry-chat-agent",
+  "displayName": "Foundry Chat Agents",
+  "description": "VS Code Chat participants that load prompts from foundry-agents.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brtstore4340-glitch/pos-gem.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onChatParticipant:orchestrator",
+    "onChatParticipant:planner",
+    "onChatParticipant:supabase-architect",
+    "onChatParticipant:app-coder",
+    "onChatParticipant:runner-executor",
+    "onChatParticipant:debugger",
+    "onChatParticipant:reviewer-gatekeeper"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "orchestrator",
+        "name": "Orchestrator",
+        "description": "Boots-POS Gemini Orchestrator",
+        "isSticky": true
+      },
+      {
+        "id": "planner",
+        "name": "Planner",
+        "description": "Boots-POS Gemini Planner",
+        "isSticky": true
+      },
+      {
+        "id": "supabase-architect",
+        "name": "Supabase Architect",
+        "description": "Boots-POS Gemini Supabase Architect",
+        "isSticky": true
+      },
+      {
+        "id": "app-coder",
+        "name": "App Coder",
+        "description": "Boots-POS Gemini App Coder",
+        "isSticky": true
+      },
+      {
+        "id": "runner-executor",
+        "name": "Runner / Executor",
+        "description": "Boots-POS Gemini Runner / Executor",
+        "isSticky": true
+      },
+      {
+        "id": "debugger",
+        "name": "Debugger",
+        "description": "Boots-POS Gemini Debugger",
+        "isSticky": true
+      },
+      {
+        "id": "reviewer-gatekeeper",
+        "name": "Reviewer / Gatekeeper",
+        "description": "Boots-POS Gemini Reviewer / Gatekeeper",
+        "isSticky": true
+      }
+    ],
+    "configuration": {
+      "title": "Foundry Chat Agents",
+      "properties": {
+        "foundryAgents.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434/v1/chat/completions",
+          "description": "OpenAI-compatible endpoint for your AI."
+        },
+        "foundryAgents.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key (if required)."
+        },
+        "foundryAgents.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model name to send to your endpoint."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "package": "vsce package",
+    "repackage": "npm run build && npm run package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.0",
+    "vsce": "^2.15.0"
+  }
+}

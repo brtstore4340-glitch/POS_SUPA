@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
+const XLSX_DISABLED = String(import.meta.env.VITE_DISABLE_XLSX || "").toLowerCase() === "true";
 
 function Card({ title, subtitle, disabled, children, isDarkMode }) {
   return (
@@ -178,21 +179,29 @@ export default function PosUploadModal({ open, onClose, isDarkMode = false }) {
           </Card>
 
           <Card
-            title="2) Pricing (ItemMasterPrintOnDeph .xls/.xlsx)"
-            subtitle={canSecondary ? "merge เฉพาะ fields ที่กำหนด" : "ต้องอัปโหลด Master ก่อน"}
-            disabled={busy || !canSecondary}
+            title={XLSX_DISABLED ? "2) Pricing (Excel disabled)" : "2) Pricing (ItemMasterPrintOnDeph .xls/.xlsx)"}
+            subtitle={
+              XLSX_DISABLED
+                ? "ปิดการอัปโหลด Excel ชั่วคราว (ใช้ CSV แทนได้)"
+                : (canSecondary ? "merge เฉพาะ fields ที่กำหนด" : "ต้องอัปโหลด Master ก่อน")
+            }
+            disabled={busy || !canSecondary || XLSX_DISABLED}
             isDarkMode={isDarkMode}
           >
-            <input type="file" accept=".xls,.xlsx" disabled={busy || !canSecondary} onChange={(e) => onPick("pricing", e.target.files?.[0])} className="w-full text-xs" />
+            <input type="file" accept=".xls,.xlsx" disabled={busy || !canSecondary || XLSX_DISABLED} onChange={(e) => onPick("pricing", e.target.files?.[0])} className="w-full text-xs" />
           </Card>
 
           <Card
-            title="3) Maintenance (ItemMaintananceEvent .xls/.xlsx)"
-            subtitle={canSecondary ? "merge เฉพาะ fields ที่กำหนด" : "ต้องอัปโหลด Master ก่อน"}
-            disabled={busy || !canSecondary}
+            title={XLSX_DISABLED ? "3) Maintenance (Excel disabled)" : "3) Maintenance (ItemMaintananceEvent .xls/.xlsx)"}
+            subtitle={
+              XLSX_DISABLED
+                ? "ปิดการอัปโหลด Excel ชั่วคราว (ใช้ CSV แทนได้)"
+                : (canSecondary ? "merge เฉพาะ fields ที่กำหนด" : "ต้องอัปโหลด Master ก่อน")
+            }
+            disabled={busy || !canSecondary || XLSX_DISABLED}
             isDarkMode={isDarkMode}
           >
-            <input type="file" accept=".xls,.xlsx" disabled={busy || !canSecondary} onChange={(e) => onPick("maintenance", e.target.files?.[0])} className="w-full text-xs" />
+            <input type="file" accept=".xls,.xlsx" disabled={busy || !canSecondary || XLSX_DISABLED} onChange={(e) => onPick("maintenance", e.target.files?.[0])} className="w-full text-xs" />
           </Card>
         </div>
 
@@ -214,4 +223,3 @@ export default function PosUploadModal({ open, onClose, isDarkMode = false }) {
     </div>
   );
 }
-

@@ -9,6 +9,8 @@ import {
   getUploadStatus,
 } from "./excelUploadUtils";
 
+const XLSX_DISABLED = String(import.meta.env.VITE_DISABLE_XLSX || "").toLowerCase() === "true";
+
 type ProgressState = {
   phase:
     | "idle"
@@ -95,7 +97,9 @@ function StepCard(props: {
             ].join(" ")}
           >
             <div className="text-sm text-zinc-800 dark:text-zinc-200">
-              {file ? `Selected: ${file.name}` : "Click to choose Excel file (.xlsx)"}
+              {file
+                ? `Selected: ${file.name}`
+                : (disabled ? "Excel upload disabled" : "Click to choose Excel file (.xlsx)")}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : ""}
@@ -128,6 +132,10 @@ export default function AdminExcelUploadPage() {
 
   async function handleUploadAll() {
     if (!masterFile) return;
+    if (XLSX_DISABLED) {
+      setProgress({ phase: "error", percent: 0, message: "Excel uploads are disabled. Use CSV instead." });
+      return;
+    }
 
     setBusy(true);
     setProgress({ phase: "reading", percent: 1, message: "Reading master file..." });
@@ -219,7 +227,7 @@ export default function AdminExcelUploadPage() {
             </div>
 
             <button
-              disabled={!canUpload || busy}
+              disabled={!canUpload || busy || XLSX_DISABLED}
               onClick={() => {
                 handleUploadAll().catch(() => {});
               }}
@@ -230,7 +238,7 @@ export default function AdminExcelUploadPage() {
                 (!canUpload || busy) ? "opacity-50 cursor-not-allowed" : "",
               ].join(" ")}
             >
-              {busy ? "Uploading..." : "Upload Now"}
+              {XLSX_DISABLED ? "Excel Disabled" : (busy ? "Uploading..." : "Upload Now")}
             </button>
           </div>
 
@@ -241,6 +249,12 @@ export default function AdminExcelUploadPage() {
               <div>{progress.phase}</div>
             </div>
           </div>
+
+          {XLSX_DISABLED ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-800 p-4 text-sm">
+              Excel uploads (.xlsx/.xls) are disabled. Please export as CSV and use the CSV-based upload flow.
+            </div>
+          ) : null}
 
           {progress.phase === "error" ? (
             <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm">
@@ -257,7 +271,7 @@ export default function AdminExcelUploadPage() {
               rowCount={statusMeta?.master?.rowCount}
               file={masterFile}
               setFile={setMasterFile}
-              disabled={busy}
+              disabled={busy || XLSX_DISABLED}
             />
 
             <StepCard
@@ -268,7 +282,7 @@ export default function AdminExcelUploadPage() {
               rowCount={statusMeta?.itemmaster?.rowCount}
               file={itemMasterFile}
               setFile={setItemMasterFile}
-              disabled={busy}
+              disabled={busy || XLSX_DISABLED}
             />
 
             <StepCard
@@ -279,7 +293,7 @@ export default function AdminExcelUploadPage() {
               rowCount={statusMeta?.itemevent?.rowCount}
               file={itemEventFile}
               setFile={setItemEventFile}
-              disabled={busy}
+              disabled={busy || XLSX_DISABLED}
             />
           </div>
 

@@ -36,7 +36,7 @@ export default function FileUploadPage() {
              <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">Click or Drop Files Here</h3>
                 <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                   Support for CSV, XLSX, and JSON files. Maximum file size 50MB.
+                   Support for CSV and JSON files. Maximum file size 50MB.
                 </p>
              </div>
           </div>
@@ -81,4 +81,3 @@ export default function FileUploadPage() {
     </div>
   );
 }
-

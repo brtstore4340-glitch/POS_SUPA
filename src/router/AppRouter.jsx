@@ -13,14 +13,20 @@ import { PosPage } from "@/pages/PosPage";
 import { ProductsPage } from "@/pages/ProductsPage";
 import { OrdersPage } from "@/pages/OrdersPage";
 import { ReportsPage } from "@/pages/ReportsPage";
+import DailyReportPage from "@/pages/DailyReportPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ItemSearchPage } from "@/pages/ItemSearchPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import SetupPage from "@/pages/SetupPage";
 
+import PinLoginPage from "@/pages/PinLoginPage";
+import SignInPage from "@/pages/SignInPage";
+
 const router = createBrowserRouter([
+  { path: "/signin", element: <SignInPage /> },
   // Auth routes (public)
   { path: "/login", element: <Login /> },
+  { path: "/pin-login", element: <PinLoginPage /> },
   { path: "/auth/select-profile", element: <SelectProfile /> },
   { path: "/auth/pin", element: <EnterPin /> },
   { path: "/auth/change-pin", element: <ChangePin /> },
@@ -92,6 +98,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowRoles={["admin", "supervisor"]}>
             <ReportsPage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "reports/daily-sales",
+        element: (
+          <ProtectedRoute allowRoles={["admin"]}>
+            <DailyReportPage />
           </ProtectedRoute>
         )
       },

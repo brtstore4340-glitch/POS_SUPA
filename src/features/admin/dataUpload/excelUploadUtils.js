@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import { readXlsxSheetToJson } from "../../../utils/safeXlsx";
 import {
   getFirestore,
   doc,
@@ -84,11 +84,10 @@ export function detectStatusField(sample) {
  * @returns {Promise<Record<string, any>[]>}
  */
 export async function readExcelFile(file) {
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
-  const sheetName = wb.SheetNames[0];
-  const ws = wb.Sheets[sheetName];
-  const json = /** @type {Record<string, any>[]} */ (XLSX.utils.sheet_to_json(ws, { defval: "" }));
+  const { rows } = await readXlsxSheetToJson(file, {
+    sheetToJsonOptions: { defval: "" },
+  });
+  const json = /** @type {Record<string, any>[]} */ (rows || []);
 
   return json.map((row) => {
     /** @type {Record<string, any>} */

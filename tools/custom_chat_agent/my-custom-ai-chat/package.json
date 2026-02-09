@@ -1,0 +1,54 @@
+{
+  "name": "my-custom-ai-chat",
+  "displayName": "My Custom AI",
+  "description": "Custom Chat participant for VS Code Chat UI.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onChatParticipant:myai"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "myai",
+        "name": "My Custom AI",
+        "description": "Talk to My Custom AI",
+        "isSticky": true
+      }
+    ],
+    "configuration": {
+      "title": "My Custom AI",
+      "properties": {
+        "myai.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434/v1/chat/completions",
+          "description": "OpenAI-compatible endpoint for your custom AI."
+        },
+        "myai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key (if required). Prefer SecretStorage in production."
+        },
+        "myai.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model name to send to your endpoint."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.0",
+    "vsce": "^3.2.1"
+  }
+}

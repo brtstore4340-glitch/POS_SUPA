@@ -5,6 +5,8 @@ import { posService } from '../services/posService';
 import { cn } from '../utils/cn';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+const XLSX_DISABLED = String(import.meta.env.VITE_DISABLE_XLSX || "").toLowerCase() === "true";
+
 export default function AdminSettingsPage({ onBack }) {
   // BEGIN: FUNCTION ZONE (DO NOT TOUCH)
   const [activeSubTab, setActiveSubTab] = useState('uploads'); // Default to uploads as it has the main logic
@@ -82,6 +84,10 @@ export default function AdminSettingsPage({ onBack }) {
   const handlePrintUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (XLSX_DISABLED) {
+      updateStatus('print', { loading: false, log: { type: 'error', msg: 'Excel uploads are disabled. Use CSV instead.' } });
+      return;
+    }
     updateStatus('print', { loading: true, progress: 0, log: null });
     
     try {
@@ -99,6 +105,10 @@ export default function AdminSettingsPage({ onBack }) {
   const handleMaintUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (XLSX_DISABLED) {
+      updateStatus('maint', { loading: false, log: { type: 'error', msg: 'Excel uploads are disabled. Use CSV instead.' } });
+      return;
+    }
     updateStatus('maint', { loading: true, progress: 0, log: null });
 
     try {
@@ -301,24 +311,28 @@ export default function AdminSettingsPage({ onBack }) {
 
                     <UploadCard 
                         title="2. Print Data" 
-                        desc="Label Printing Details (.xls)" 
+                        desc={XLSX_DISABLED ? "Excel disabled (use CSV instead)" : "Label Printing Details (.xls)"} 
                         accept=".xls,.xlsx"
                         status={uploadStatus.print}
                         meta={uploadMeta.print}
                         onChange={handlePrintUpload}
                         icon={<FileText size={32} />}
                         active={hasMaster} // Only active if master exists
+                        blocked={XLSX_DISABLED}
+                        blockedText="Excel uploads disabled"
                     />
 
                     <UploadCard 
                         title="3. Maintenance" 
-                        desc="Event Triggers (.xls)" 
+                        desc={XLSX_DISABLED ? "Excel disabled (use CSV instead)" : "Event Triggers (.xls)"} 
                         accept=".xls,.xlsx"
                         status={uploadStatus.maint}
                         meta={uploadMeta.maint}
                         onChange={handleMaintUpload}
                         icon={<FileText size={32} />}
                         active={hasMaster} // Only active if master exists
+                        blocked={XLSX_DISABLED}
+                        blockedText="Excel uploads disabled"
                     />
                 </div>
              </div>
@@ -386,13 +400,13 @@ const formatUploadDate = (value) => {
   }
 };
 
-function UploadCard({ title, desc, accept, status, onChange, icon, active, required, meta }) {
+function UploadCard({ title, desc, accept, status, onChange, icon, active, required, meta, blocked, blockedText }) {
   return (
     <div className={cn("bg-white dark:bg-black/20 rounded-2xl shadow-sm border overflow-hidden relative transition-all h-full flex flex-col", active ? "border-slate-200 dark:border-white/10 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30" : "border-slate-100 dark:border-white/5 opacity-60 grayscale")}>
-      {!active && (
+      {(!active || blocked) && (
         <div className="absolute inset-0 z-10 bg-slate-100/50 dark:bg-black/50 flex flex-col items-center justify-center text-slate-400 backdrop-blur-[1px]">
           <Lock size={32} className="mb-2" />
-          <span className="text-sm font-semibold">Waiting for Master Data</span>
+          <span className="text-sm font-semibold">{blocked ? (blockedText || "Disabled") : "Waiting for Master Data"}</span>
         </div>
       )}
       
@@ -415,7 +429,7 @@ function UploadCard({ title, desc, accept, status, onChange, icon, active, requi
         
         {!status.loading ? (
           <div className="relative group cursor-pointer">
-            <input type="file" accept={accept} onChange={onChange} disabled={!active} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+            <input type="file" accept={accept} onChange={onChange} disabled={!active || blocked} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
             <div className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-xl p-6 text-center group-hover:bg-blue-50 dark:group-hover:bg-blue-500/10 group-hover:border-blue-300 dark:group-hover:border-blue-500/30 transition-all bg-slate-50 dark:bg-white/5">
               <Upload size={24} className="mx-auto text-slate-400 mb-2 group-hover:text-blue-500" />
               <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">Click to Upload</span>
@@ -446,4 +460,3 @@ function UploadCard({ title, desc, accept, status, onChange, icon, active, requi
     </div>
   );
 }
-
