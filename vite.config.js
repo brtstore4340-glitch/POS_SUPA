@@ -10,9 +10,4 @@ export default defineConfig({
       "@": path.resolve(process.cwd(), "./src"),
     },
   },
-  // Expose Supabase env variables to the client
-  define: {
-    'process.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
-    'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
-  },
 });
