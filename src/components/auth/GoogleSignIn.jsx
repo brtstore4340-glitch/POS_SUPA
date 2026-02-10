@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/modules/auth/AuthContext';
-import { Loader2, Sun, Moon, CheckCircle2, Wifi, WifiOff, Loader2 as LoaderIcon } from 'lucide-react';
+import { Loader2, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { ServerStatus } from '@/components/ui/ServerStatus';
+import { storageService } from '@/services/internal/storageService';
 
 export default function GoogleSignIn() {
   // BEGIN: FUNCTION ZONE (DO NOT TOUCH)
@@ -16,7 +17,7 @@ export default function GoogleSignIn() {
 
   // Theme Sync Logic (Purely presentational, allowed in function zone to keep it clean)
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = storageService.getTheme();
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialDark = savedTheme === 'dark' || (!savedTheme && systemDark);
     setIsDark(initialDark);
@@ -27,10 +28,11 @@ export default function GoogleSignIn() {
   const toggleTheme = () => {
     const newDark = !isDark;
     setIsDark(newDark);
-    localStorage.setItem('theme', newDark ? 'dark' : 'light');
+    storageService.setTheme(newDark ? 'dark' : 'light');
     if (newDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   };
+
 
   const handleSignIn = async () => {
     console.log('🔍 GoogleSignIn: Button clicked');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../../supabase/client"; // Corrected path
+import { systemService } from "@/services/systemService";
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
 
 export function ServerStatus() {
@@ -12,23 +12,10 @@ export function ServerStatus() {
     const checkServer = async () => {
       if (!mounted) return;
       
-      try {
-        // Perform a simple query to check the connection.
-        // We query the 'profiles' table with a limit of 1 as a lightweight health check.
-        const { error } = await supabase.from('profiles').select('id').limit(1);
-
-        if (error && error.message !== 'JWT expired') {
-            // Ignore auth errors, but treat other errors as disconnection
-            throw new Error(error.message);
-        }
-        
-        if (mounted) {
-          setStatus("connected");
-        }
-      } catch (error) {
-        if (mounted) {
-          setStatus("disconnected");
-        }
+      const result = await systemService.checkConnection();
+      
+      if (mounted) {
+        setStatus(result.status);
       }
     };
 

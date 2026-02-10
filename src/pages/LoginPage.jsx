@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseAuth } from '../../supabase/SupabaseAuthProvider';
+import { useAuth } from '../modules/auth/AuthContext'; // Updated import
+import { storageService } from '../services/internal/storageService'; // Use storage service
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,22 +11,17 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showSignupInfo, setShowSignupInfo] = useState(false);
 
-  const { signIn } = useSupabaseAuth();
+  const { login } = useAuth(); // Use login from AuthContext
   const navigate = useNavigate();
 
-  // On component mount, check for saved credentials
+  // On component mount, check for saved credentials via Storage Service
   useEffect(() => {
-    try {
-      const savedEmail = localStorage.getItem('rememberedEmail');
-      // NOTE: Storing passwords in localStorage is not secure. This is implemented as requested.
-      const savedPassword = localStorage.getItem('rememberedPassword');
-      if (savedEmail && savedPassword) {
-        setEmail(savedEmail);
-        setPassword(savedPassword);
-        setRememberMe(true);
-      }
-    } catch (e) {
-      console.error('Failed to read from localStorage:', e);
+    const savedEmail = storageService.getRememberedEmail();
+    const savedPassword = storageService.getRememberedPassword();
+    if (savedEmail && savedPassword) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
     }
   }, []);
 
@@ -36,20 +32,19 @@ export default function LoginPage() {
     setShowSignupInfo(false);
 
     try {
-      const { error } = await signIn({ email, password });
+      const { error } = await login(email, password);
       if (error) throw error;
 
-      // Handle "Remember Me" logic
+      // Handle "Remember Me" logic via Storage Service
       if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
+        storageService.setRememberedEmail(email);
+        storageService.setRememberedPassword(password);
       } else {
-        localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberedPassword');
+        storageService.clearCredentials();
       }
 
       console.log('✅ Step 1/2: Email login successful');
-      navigate('/pin-login'); // Proceed to PIN login
+      navigate('/select-profile'); // Proceed to profile selection
     } catch (err) {
       console.error('Sign-in error:', err);
       setError(err.message);
@@ -213,4 +208,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 

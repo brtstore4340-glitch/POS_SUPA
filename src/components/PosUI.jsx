@@ -8,19 +8,12 @@ import ProductLookupModal from './ProductLookupModal';
 import DailyReportModal from './DailyReportModal';
 import { posService } from '../services/posService';
 
-// Version Control
-const APP_VERSION = "1.2.0";
-const APP_UPDATED = "2025-12-26";
+import { storageService } from '../services/internal/storageService';
+
+// ... imports
 
 export default function PosUI({ onAdminSettings, onSearch }) {
-  const { 
-    cartItems, addToCart: originalAddToCart, decreaseItem, removeFromCart, clearCart, 
-    summary, lastScanned, isLoading, error,
-    setManualItemDiscount, updateBillDiscount, billDiscount,
-    addCoupon, removeCoupon, coupons,
-    updateAllowance, allowance,
-    topup
-  } = useCart();
+  // ... other hooks
 
   const [lastOrder, setLastOrder] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,10 +26,7 @@ export default function PosUI({ onAdminSettings, onSearch }) {
   
   // --- Search UX Enhancements (Arrow select + Enter pick + Search Hits) ---
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
-  const [searchHits, setSearchHits] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("pos_search_hits") || "{}"); }
-    catch { return {}; }
-  });
+  const [searchHits, setSearchHits] = useState(() => storageService.getPosSearchHits());
 
   const bumpSearchHit = (sku) => {
     try {
@@ -45,9 +35,12 @@ export default function PosUI({ onAdminSettings, onSearch }) {
       const next = { ...(searchHits || {}) };
       next[key] = (next[key] || 0) + 1;
       setSearchHits(next);
-      localStorage.setItem("pos_search_hits", JSON.stringify(next));
+      storageService.setPosSearchHits(next);
     } catch { /* noop */ }
   };
+  
+  // ... rest of the component
+
 
   const handleInputKeyDownWrapper = async (e) => {
     // When dropdown is open: arrow up/down move highlight; Enter picks highlighted item.
