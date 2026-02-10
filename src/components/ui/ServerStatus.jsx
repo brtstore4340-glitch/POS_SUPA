@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "../../../supabase/client"; // Corrected path
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
 
 export function ServerStatus() {
   const [status, setStatus] = useState("connecting"); // 'connecting' | 'connected' | 'disconnected'
-  const [lastChecked, setLastChecked] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -15,29 +13,21 @@ export function ServerStatus() {
       if (!mounted) return;
       
       try {
-        // Try to access Firestore system status document
-        const docRef = doc(db, "system", "status");
-        await getDoc(docRef);
+        // Perform a simple query to check the connection.
+        // We query the 'profiles' table with a limit of 1 as a lightweight health check.
+        const { error } = await supabase.from('profiles').select('id').limit(1);
+
+        if (error && error.message !== 'JWT expired') {
+            // Ignore auth errors, but treat other errors as disconnection
+            throw new Error(error.message);
+        }
         
         if (mounted) {
           setStatus("connected");
-          setLastChecked(new Date());
         }
       } catch (error) {
-        // If error, try alternative check
-        try {
-          // Try to list collections as fallback
-          if (db.app) {
-            await db.app.options_.authUid;
-          }
-          if (mounted) {
-            setStatus("connected");
-            setLastChecked(new Date());
-          }
-        } catch {
-          if (mounted) {
-            setStatus("disconnected");
-          }
+        if (mounted) {
+          setStatus("disconnected");
         }
       }
     };
@@ -45,8 +35,8 @@ export function ServerStatus() {
     // Initial check
     checkServer();
 
-    // Set up polling every 10 seconds
-    intervalId = setInterval(checkServer, 10000);
+    // Set up polling every 30 seconds
+    intervalId = setInterval(checkServer, 30000);
 
     return () => {
       mounted = false;
@@ -62,7 +52,6 @@ export function ServerStatus() {
           color: "text-green-500",
           bgColor: "bg-green-500/10",
           label: "Connected",
-          pulse: false,
         };
       case "disconnected":
         return {
@@ -70,7 +59,6 @@ export function ServerStatus() {
           color: "text-red-500",
           bgColor: "bg-red-500/10",
           label: "Disconnected",
-          pulse: true,
         };
       default:
         return {
@@ -78,7 +66,6 @@ export function ServerStatus() {
           color: "text-yellow-500",
           bgColor: "bg-yellow-500/10",
           label: "Connecting...",
-          pulse: false,
         };
     }
   };
@@ -91,7 +78,6 @@ export function ServerStatus() {
         inline-flex items-center gap-1.5 px-2 py-1 rounded-full
         ${config.bgColor} ${config.color}
         transition-all duration-300
-        ${config.pulse ? "animate-pulse" : ""}
       `}
       title={`Server Status: ${config.label}`}
     >
