@@ -2,12 +2,6 @@ import * as React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import ProtectedRoute from "@/modules/auth/ProtectedRoute";
-import Login from "@/modules/auth/pages/Login";
-import SelectProfile from "@/modules/auth/pages/SelectProfile";
-import EnterPin from "@/modules/auth/pages/EnterPin";
-import ChangePin from "@/modules/auth/pages/ChangePin";
-import UpdateInfo from "@/modules/auth/pages/UpdateInfo";
-import AdminSettings from "@/modules/auth/pages/AdminSettings";
 import { HomePage } from "@/pages/HomePage";
 import { PosPage } from "@/pages/PosPage";
 import { ProductsPage } from "@/pages/ProductsPage";
@@ -18,121 +12,36 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { ItemSearchPage } from "@/pages/ItemSearchPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import SetupPage from "@/pages/SetupPage";
-
 import PinLoginPage from "@/pages/PinLoginPage";
 import SignInPage from "@/pages/SignInPage";
+import SelectProfile from "@/modules/auth/pages/SelectProfile";
 
 const router = createBrowserRouter([
+  // Public routes
   { path: "/signin", element: <SignInPage /> },
-  // Auth routes (public)
-  { path: "/login", element: <Login /> },
   { path: "/pin-login", element: <PinLoginPage /> },
-  { path: "/auth/select-profile", element: <SelectProfile /> },
-  { path: "/auth/pin", element: <EnterPin /> },
-  { path: "/auth/change-pin", element: <ChangePin /> },
-  { path: "/setup", element: <SetupPage /> },
+  { path: "/select-profile", element: <SelectProfile /> }, // A page to select a user profile after login
+  { path: "/setup", element: <SetupPage /> }, // Placeholder setup page
 
-  // Post-login default page
-  {
-    path: "/update-info",
-    element: (
-      <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-        <UpdateInfo />
-      </ProtectedRoute>
-    )
-  },
-
-  // Admin settings
-  {
-    path: "/admin/settings",
-    element: (
-      <ProtectedRoute allowRoles={["admin"]}>
-        <AdminSettings />
-      </ProtectedRoute>
-    )
-  },
-
-  // Main app (protected)
+  // Main application layout, protected by the auth wrapper
   {
     path: "/",
     element: (
-      <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
+      <ProtectedRoute>
         <AppShell />
       </ProtectedRoute>
     ),
+    // All children of AppShell are now implicitly protected
     children: [
-      {
-        index: true,
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <HomePage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "pos",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <PosPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "products",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <ProductsPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "orders",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <OrdersPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "reports",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor"]}>
-            <ReportsPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "reports/daily-sales",
-        element: (
-          <ProtectedRoute allowRoles={["admin"]}>
-            <DailyReportPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "settings",
-        element: (
-          <ProtectedRoute allowRoles={["admin"]}>
-            <SettingsPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "item-search",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <ItemSearchPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "*",
-        element: (
-          <ProtectedRoute allowRoles={["admin", "supervisor", "staff"]}>
-            <NotFoundPage />
-          </ProtectedRoute>
-        )
-      }
+      { index: true, element: <HomePage /> },
+      { path: "pos", element: <PosPage /> },
+      { path: "products", element: <ProductsPage /> },
+      { path: "orders", element: <OrdersPage /> },
+      { path: "reports", element: <ReportsPage /> },
+      { path: "reports/daily-sales", element: <DailyReportPage /> },
+      { path: "settings", element: <SettingsPage /> },
+      { path: "item-search", element: <ItemSearchPage /> },
+      { path: "*", element: <NotFoundPage /> }
     ]
   }
 ]);

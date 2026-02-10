@@ -1,25 +1,16 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import { AuthProvider } from './modules/auth/AuthContext'; // Correct path to the new provider
+import './styles/globals.css';
 
-import App from "./App.jsx";
-import "./styles/globals.css";
-
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import { AuthProvider } from "@/modules/auth";
-import { Toaster } from "@/components/toaster";
-import ErrorBoundary from "./components/ErrorBoundary";
-
-import '../supabase/client.js';
-
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="system" storageKey="theme">
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-        <Toaster />
-      </ThemeProvider>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
