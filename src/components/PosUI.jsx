@@ -10,10 +10,19 @@ import { posService } from '../services/posService';
 
 import { storageService } from '../services/internal/storageService';
 
-// ... imports
+// Version Control
+const APP_VERSION = "1.2.0";
+const APP_UPDATED = "2026-02-10"; // Updated to today
 
 export default function PosUI({ onAdminSettings, onSearch }) {
-  // ... other hooks
+  const { 
+    cartItems, addToCart: originalAddToCart, decreaseItem, removeFromCart, clearCart, 
+    summary, lastScanned, isLoading, error,
+    setManualItemDiscount, updateBillDiscount, billDiscount,
+    addCoupon, removeCoupon, coupons,
+    updateAllowance, allowance,
+    topup
+  } = useCart();
 
   const [lastOrder, setLastOrder] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
