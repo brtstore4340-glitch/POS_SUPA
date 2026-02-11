@@ -220,6 +220,50 @@ function formatAgentList(map: Map<string, AgentInfo>, order: string[]): string {
 export function activate(context: vscode.ExtensionContext) {
   const participantId = "bootsagents";
 
+  // Command: open Chat view and prefill clipboard with the mention
+  const openChatCmd = vscode.commands.registerCommand("bootsagents.openChat", async () => {
+    await vscode.commands.executeCommand("workbench.action.chat.openInChatView");
+    await vscode.env.clipboard.writeText("@bootsagents /agent list ");
+    vscode.window.showInformationMessage("Chat opened. Paste (Ctrl+V) to start with @bootsagents /agent ...");
+  });
+
+  // Command: list agents and copy a ready-to-send prompt
+  const listAgentsCmd = vscode.commands.registerCommand("bootsagents.listAgents", async () => {
+    const repoRoot = getWorkspaceRoot();
+    if (!repoRoot) {
+      vscode.window.showWarningMessage("เปิดโฟลเดอร์โปรเจกต์ก่อน แล้วลองใหม่อีกครั้ง");
+      return;
+    }
+
+    const cfg = vscode.workspace.getConfiguration();
+    const agentsRoot = cfg.get<string>(`${participantId}.agentsRoot`) || "foundry-agents";
+    const agentsDir = path.isAbsolute(agentsRoot) ? agentsRoot : path.join(repoRoot, agentsRoot);
+    const { map, order } = loadAgents(agentsDir);
+    if (order.length === 0) {
+      vscode.window.showWarningMessage(`ไม่พบเอเจนต์ใน ${agentsDir}`);
+      return;
+    }
+
+    const pick = await vscode.window.showQuickPick(
+      order.map((key) => {
+        const a = map.get(key)!;
+        return {
+          label: a.name,
+          description: a.description || key,
+          key,
+        };
+      }),
+      { placeHolder: "เลือกเอเจนต์ที่จะเรียก" }
+    );
+
+    if (!pick) return;
+
+    const snippet = `@${participantId} /agent ${pick.key} `;
+    await vscode.env.clipboard.writeText(snippet);
+    await vscode.commands.executeCommand("workbench.action.chat.openInChatView");
+    vscode.window.showInformationMessage(`คัดลอกแล้ว: ${snippet} (กด Ctrl+V ในช่องแชท)`);
+  });
+
   const handler: vscode.ChatRequestHandler = async (request, ctx, stream, token) => {
     const cfg = vscode.workspace.getConfiguration();
     const endpoint = cfg.get<string>(`${participantId}.endpoint`) || "";
@@ -308,6 +352,15 @@ export function activate(context: vscode.ExtensionContext) {
   const participant = vscode.chat.createChatParticipant(participantId, handler);
   participant.iconPath = new vscode.ThemeIcon("sparkle");
   context.subscriptions.push(participant);
+
+  // Status bar entry for quick access
+  const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  status.text = "$(comment-discussion) Boots Agents";
+  status.tooltip = "เปิด Chat พร้อมใช้ @bootsagents";
+  status.command = "bootsagents.openChat";
+  status.show();
+
+  context.subscriptions.push(openChatCmd, listAgentsCmd, status);
 }
 
 export function deactivate() {}

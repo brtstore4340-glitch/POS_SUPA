@@ -7,7 +7,7 @@
 @layer base {
   body {
     @apply font-sans text-slate-800 bg-slate-50 antialiased selection:bg-blue-500/30 selection:text-blue-900;
-    font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+    font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
   }
   .dark body {
     @apply bg-[#0f1014] text-[#e2e8f0];

@@ -1,32 +1,64 @@
 {
   "agents": [
     {
-      "name": "plannerandreview",
-      "path": "agents/01_plannerandreview.md"
+      "name": "orchestrator",
+      "path": ".github/agents/00-orchestrator.agent.md"
     },
     {
-      "name": "coderanddebugger",
-      "path": "agents/02_coderanddebugger.md"
+      "name": "planner",
+      "path": ".github/agents/01-planner.agent.md"
+    },
+    {
+      "name": "supabase-architect",
+      "path": ".github/agents/02-supabase-architect.agent.md"
+    },
+    {
+      "name": "app-coder",
+      "path": ".github/agents/03-app-coder.agent.md"
+    },
+    {
+      "name": "runner-executor",
+      "path": ".github/agents/04-runner-executor.agent.md"
+    },
+    {
+      "name": "debugger",
+      "path": ".github/agents/05-debugger.agent.md"
+    },
+    {
+      "name": "reviewer-gatekeeper",
+      "path": ".github/agents/06-reviewer-gatekeeper.agent.md"
     },
     {
       "name": "devopsandrelease",
-      "path": "agents/03_devopsandrelease.md"
+      "path": ".github/agents/DevOpsAndRelease.agent.md"
     },
     {
       "name": "dataandautomation",
-      "path": "agents/04_dataandautomation.md"
+      "path": ".github/agents/DataAndAutomation.agent.md"
     },
     {
       "name": "qatestandquality",
-      "path": "agents/05_qatestandquality.md"
+      "path": ".github/agents/QATestAndQuality.agent.md"
     },
     {
       "name": "securityandcompliance",
-      "path": "agents/06_securityandcompliance.md"
+      "path": ".github/agents/SecurityAndCompliance.agent.md"
     },
     {
       "name": "productandux",
-      "path": "agents/07_productandux.md"
+      "path": ".github/agents/ProductAndUX.agent.md"
+    },
+    {
+      "name": "tailwind-design-system",
+      "path": ".github/agents/tailwind-design-system.agent.md"
+    },
+    {
+      "name": "skill-creator",
+      "path": ".github/agents/skill-creator.agent.md"
+    },
+    {
+      "name": "skill-installer",
+      "path": ".github/agents/skill-installer.agent.md"
     }
   ]
 }

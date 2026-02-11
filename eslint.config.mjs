@@ -16,7 +16,6 @@ export default [
       "**/*.min.js",
       "**/*.min.*",
       ".diag/**",
-      ".firebase/**",
       ".boots-logs/**",
       "_boot/**",
       "ai-backups/**",
@@ -35,7 +34,8 @@ export default [
       "**/*.config.js",
       "pos-gem/functions/**/*.js",
       "pos-gem/functions/src/**/*.js",
-      "shared/**/*.js"
+      "shared/**/*.js",
+      "test-supabase-connection.js"
     ],
     languageOptions: {
       globals: {

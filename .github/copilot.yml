@@ -2,24 +2,48 @@ version: 1
 agents:
   enabled: true
   custom_agents:
-    - name: plannerandreview
-      description: Plan tasks end-to-end, review requirements, and produce acceptance criteria + risk checks.
-      path: .github/agents/01_plannerandreview.md
-    - name: coderanddebugger
-      description: Implement code changes, debug build/runtime issues, and propose safe patches with rollback.
-      path: .github/agents/02_coderanddebugger.md
+    - name: orchestrator
+      description: Coordinates the Boots-POS Gemini multi-agent workflow and produces the final plan.
+      path: .github/agents/00-orchestrator.agent.md
+    - name: planner
+      description: Defines scope, DoD, and WBS for Boots-POS Gemini tasks.
+      path: .github/agents/01-planner.agent.md
+    - name: supabase-architect
+      description: Designs secure Postgres/RLS/RPC/Edge contracts for Boots-POS Gemini.
+      path: .github/agents/02-supabase-architect.agent.md
+    - name: app-coder
+      description: Implements app integration changes for Boots-POS Gemini (React/Vue/Tailwind).
+      path: .github/agents/03-app-coder.agent.md
+    - name: runner-executor
+      description: Runs commands and gathers evidence/logs (no code changes).
+      path: .github/agents/04-runner-executor.agent.md
+    - name: debugger
+      description: Fixes build/runtime/RLS failures with minimal safe patches.
+      path: .github/agents/05-debugger.agent.md
+    - name: reviewer-gatekeeper
+      description: Strict review and release gatekeeper for Boots-POS Gemini.
+      path: .github/agents/06-reviewer-gatekeeper.agent.md
     - name: devopsandrelease
       description: CI/CD, GitHub Actions, Firebase/Vercel deploy, env/secrets, release workflows and reliability.
-      path: .github/agents/03_devopsandrelease.md
+      path: .github/agents/DevOpsAndRelease.agent.md
     - name: dataandautomation
       description: Excel/CSV ingestion, ETL rules, validation, Firestore batch writes, and automation scripts.
-      path: .github/agents/04_dataandautomation.md
+      path: .github/agents/DataAndAutomation.agent.md
     - name: qatestandquality
       description: Test strategy, E2E/unit tests, quality gates, bug reproduction, and regression prevention.
-      path: .github/agents/05_qatestandquality.md
+      path: .github/agents/QATestAndQuality.agent.md
     - name: securityandcompliance
       description: Threat modeling, secrets handling, auth/roles, Firestore rules, and compliance-minded guidance.
-      path: .github/agents/06_securityandcompliance.md
+      path: .github/agents/SecurityAndCompliance.agent.md
     - name: productandux
       description: UX/UI consistency, flows, IA, and product acceptance criteria aligned to business needs.
-      path: .github/agents/07_productandux.md
+      path: .github/agents/ProductAndUX.agent.md
+    - name: tailwind-design-system
+      description: Build Tailwind design systems, tokens, and scalable component patterns.
+      path: .github/agents/tailwind-design-system.agent.md
+    - name: skill-creator
+      description: Create or update Codex skills (SKILL.md + references/scripts).
+      path: .github/agents/skill-creator.agent.md
+    - name: skill-installer
+      description: List or install Codex skills from curated lists or GitHub paths.
+      path: .github/agents/skill-installer.agent.md

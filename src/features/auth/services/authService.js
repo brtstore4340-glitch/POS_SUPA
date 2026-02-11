@@ -8,13 +8,14 @@ export const authService = {
    * @param {string} password - The user's password.
    * @returns {Promise<Object>} The session data.
    */
-  async signIn(email, password) {
-    if (!email || !password) {
-      throw new Error("Email and password are required.");
+  async signIn(employeeId, password) {
+    if (!employeeId || !password) {
+      throw new Error("Employee ID and password are required.");
     }
+    const syntheticEmail = `${employeeId}@boots-pos.local`;
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: syntheticEmail,
+      password: password,
     });
     if (error) throw error;
     return data;

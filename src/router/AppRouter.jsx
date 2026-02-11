@@ -4,7 +4,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import ProtectedRoute from "@/modules/auth/ProtectedRoute";
 import { HomePage } from "@/pages/HomePage";
 import { PosPage } from "@/pages/PosPage";
-import { ProductsPage } from "@/pages/ProductsPage";
+import { ProductListPage } from "@/pages/ProductListPage";
+import { ProductFormPage } from "@/pages/ProductFormPage";
 import { OrdersPage } from "@/pages/OrdersPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import DailyReportPage from "@/pages/DailyReportPage";
@@ -35,7 +36,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "pos", element: <PosPage /> },
-      { path: "products", element: <ProductsPage /> },
+      { path: "products", element: <ProtectedRoute allowRoles={['admin', 'manager', 'staff']}><ProductListPage /></ProtectedRoute> },
+      { path: "products/new", element: <ProtectedRoute allowRoles={['admin', 'manager']}><ProductFormPage /></ProtectedRoute> },
       { path: "orders", element: <OrdersPage /> },
       { path: "reports", element: <ReportsPage /> },
       { path: "reports/daily-sales", element: <DailyReportPage /> },

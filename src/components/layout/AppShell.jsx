@@ -11,6 +11,7 @@ import { fetchMenus } from "../../services/menuService";
 const staticNavItems = [
   { to: "/", label: "Dashboard" },
   { to: "/pos", label: "POS Terminal" },
+  { to: "/products", label: "Products" },
   { to: "/item-search", label: "Item Search" },
   { to: "/reports", label: "Daily" },
   { to: "/settings", label: "Setting" },

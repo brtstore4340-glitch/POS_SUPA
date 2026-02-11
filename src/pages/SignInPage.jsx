@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 
 export default function SignInPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,7 +18,7 @@ export default function SignInPage() {
     setError(null);
     setLoading(true);
     try {
-      await authService.signIn(email, password);
+      await authService.signIn(employeeId, password);
       navigate('/'); // Redirect to home page on successful sign-in
     } catch (err) {
       setError(err.message);
@@ -37,13 +37,13 @@ export default function SignInPage() {
         <form onSubmit={handleSignIn}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="employeeId">Employee ID</label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="employeeId"
+                type="text"
+                placeholder="Enter your Employee ID"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
                 required
               />
             </div>

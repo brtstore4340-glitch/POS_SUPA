@@ -11,10 +11,24 @@
     "Other"
   ],
   "activationEvents": [
-    "onChatParticipant:bootsagents"
+    "onChatParticipant:bootsagents",
+    "onCommand:bootsagents.openChat",
+    "onCommand:bootsagents.listAgents"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "bootsagents.openChat",
+        "title": "Boots Agents: Open Chat",
+        "category": "Boots Agents"
+      },
+      {
+        "command": "bootsagents.listAgents",
+        "title": "Boots Agents: List Agents",
+        "category": "Boots Agents"
+      }
+    ],
     "chatParticipants": [
       {
         "id": "bootsagents",
