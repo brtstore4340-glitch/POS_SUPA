@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/modules/auth/AuthContext';
+import { authService } from '@/features/auth/services/authService';
 import { Loader2, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { ServerStatus } from '@/components/ui/ServerStatus';
 import { storageService } from '@/services/internal/storageService';
@@ -40,7 +41,15 @@ export default function GoogleSignIn() {
     setError(null);
     
     try {
-      const result = await signInWithGoogle();
+      const signInFn = typeof signInWithGoogle === 'function'
+        ? signInWithGoogle
+        : authService?.signInWithGoogle;
+
+      if (typeof signInFn !== 'function') {
+        throw new Error('Google sign-in is not available in this build.');
+      }
+
+      const result = await signInFn();
       console.log('🔍 GoogleSignIn: Result from signInWithGoogle:', result);
       
       if (!result.success) {
@@ -326,4 +335,3 @@ export default function GoogleSignIn() {
     </div>
   );
 }
-

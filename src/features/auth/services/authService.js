@@ -1,5 +1,5 @@
 // src/features/auth/services/authService.js
-import { supabase } from '../../../../supabase/client';
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../../../../supabase/client';
 
 export const authService = {
   /**
@@ -41,6 +41,38 @@ export const authService = {
   },
 
   /**
+   * Signs in with Google OAuth.
+   * @returns {Promise<Object>} The result of the sign-in attempt.
+   */
+  async signInWithGoogle() {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: supabaseConfigError || "Supabase is not configured." };
+    }
+
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+
+    if (typeof supabase.auth?.signInWithOAuth === "function") {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: redirectTo ? { redirectTo } : undefined,
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true, data };
+    }
+
+    if (typeof supabase.auth?.signIn === "function") {
+      const { data, error } = await supabase.auth.signIn(
+        { provider: "google" },
+        redirectTo ? { redirectTo } : undefined
+      );
+      if (error) return { success: false, error: error.message };
+      return { success: true, data };
+    }
+
+    return { success: false, error: "Supabase auth client does not support OAuth sign-in." };
+  },
+
+  /**
    * Listens for changes in the authentication state.
    * @param {Function} callback - The function to call when the auth state changes.
    * @returns {Object} The subscription object.
@@ -52,4 +84,3 @@ export const authService = {
     return subscription;
   }
 };
-
