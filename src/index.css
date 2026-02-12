@@ -6,37 +6,57 @@
 
 @layer base {
   body {
-    @apply font-sans text-slate-800 bg-slate-50 antialiased selection:bg-blue-500/30 selection:text-blue-900;
-    font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
+    /* Subtle gradient background to make glass effect visible */
+    background: linear-gradient(135deg, #f0f4f8 0%, #dbeafe 100%);
+    @apply font-sans text-slate-800 antialiased selection:bg-blue-500/30 selection:text-blue-900 min-h-screen;
+    font-family: 'Noto Sans Thai', sans-serif;
   }
   .dark body {
-    @apply bg-[#0f1014] text-[#e2e8f0];
+    /* Dark mode gradient */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    @apply text-[#e2e8f0];
     @apply selection:bg-blue-400/30 selection:text-white;
   }
 }
 
 @layer components {
-  /* --- Unity Theme: Glassmorphism --- */
+  /* --- Modern Clear Glass Style --- */
   .glass-panel {
-    @apply bg-white/70 dark:bg-[#1a1c23]/60 backdrop-blur-xl border border-white/40 dark:border-white/5 shadow-xl rounded-2xl;
+    /* Highly transparent white, strong blur, crisp border */
+    @apply bg-white/60 dark:bg-black/40 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-xl rounded-2xl ring-1 ring-white/20;
   }
   
   .glass-card {
-    @apply bg-white/40 dark:bg-black/20 backdrop-blur-md border border-white/30 dark:border-white/5 shadow-lg rounded-xl;
+    /* Slightly less transparent for inner cards */
+    @apply bg-white/40 dark:bg-black/30 backdrop-blur-xl border border-white/30 dark:border-white/10 shadow-lg rounded-xl transition-all duration-200 hover:bg-white/50 dark:hover:bg-white/5;
   }
 
-  /* --- Unity Theme: Inputs --- */
+  /* --- Glass Inputs --- */
   .glass-input {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-black/20 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl 
+           border border-white/40 dark:border-white/10 
+           bg-white/30 dark:bg-black/20 
+           backdrop-blur-md
+           text-slate-800 dark:text-white placeholder-slate-500 
+           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 
+           transition-all duration-200 shadow-inner;
   }
 
-  /* --- Unity Theme: Buttons --- */
+  /* --- Buttons --- */
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 active:scale-[0.98] font-semibold flex items-center justify-center gap-2;
+    /* Google Blue with Glass-like shine */
+    @apply bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl 
+           transition-all duration-200 shadow-lg shadow-primary/30 
+           hover:shadow-primary/50 active:scale-[0.98] font-semibold 
+           flex items-center justify-center gap-2 border border-white/20;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/10 px-6 py-3 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] font-semibold flex items-center justify-center gap-2;
+    @apply bg-white/50 dark:bg-white/5 border border-white/40 dark:border-white/10 
+           backdrop-blur-md text-slate-700 dark:text-slate-200 
+           hover:bg-white/80 dark:hover:bg-white/10 px-6 py-3 rounded-xl 
+           transition-all duration-200 shadow-sm active:scale-[0.98] 
+           font-semibold flex items-center justify-center gap-2;
   }
 
 /* Base button press style */

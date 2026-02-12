@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../modules/auth/AuthContext';
 import { createId, getAuditLogs, resetPin, searchIds, updateId } from '../services/rbacService';
 import AccessDenied from '../components/auth/AccessDenied';
 import { Shield, Search, UserPlus, Edit, Key, History, Save, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';

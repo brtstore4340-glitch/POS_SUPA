@@ -4,18 +4,29 @@ export default {
   darkMode: ["class"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["'Noto Sans Thai'", "sans-serif"],
+      },
       colors: {
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#4285F4", // Google Blue
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#e8f0fe", // Light Google Blue background
+          foreground: "#1967d2", // Darker blue text
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#EA4335", // Google Red
+          foreground: "#FFFFFF",
+        },
+        success: {
+          DEFAULT: "#34A853", // Google Green
+          foreground: "#FFFFFF",
+        },
+        warning: {
+          DEFAULT: "#FBBC05", // Google Yellow
+          foreground: "#FFFFFF",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -50,9 +61,6 @@ export default {
         "boots-base": "hsl(var(--boots))",
         "boots-light": "hsl(var(--boots-light))",
         "discount": "hsl(var(--discount))"
-      },
-      fontFamily: {
-        sans: ["Inter", "Noto Sans Thai", "sans-serif"],
       },
     },
   },

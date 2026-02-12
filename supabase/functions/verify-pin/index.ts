@@ -1,10 +1,10 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { serve } from "npm:@supabase/functions-js";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // Note: Deno bcrypt library for secure PIN hashing.
 // You might need to adjust the import based on the latest version.
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "npm:bcryptjs";
 
 console.log("Edge Function 'verify-pin' is up and running!");
 

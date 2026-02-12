@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { posService } from '../services/posService';
 import { calculateCartSummary as calculateClientSummary } from '../services/promotionEngine';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../modules/auth/AuthContext';
 
 export const useCart = () => {
   const { session } = useAuth();

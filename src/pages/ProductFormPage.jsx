@@ -48,7 +48,7 @@ export const ProductFormPage = () => {
         ...formData,
         price: parseFloat(formData.price),
         cost_price: parseFloat(formData.cost_price),
-        category_id: parseInt(formData.category_id, 10),
+        category_id: formData.category_id, // Keep as string (UUID)
         // barcode is an array, ensure it's handled correctly if input is string
         barcode: formData.barcode.length > 0 ? formData.barcode.split(',').map(s => s.trim()) : [],
       };
