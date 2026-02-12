@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './modules/auth/AuthContext'; // Correct path to the new provider
 import { isSupabaseConfigured } from '../supabase/client';
-import { MissingSupabaseConfig } from './components/MissingSupabaseConfig';
+import { MissingSupabaseConfig } from './components/MissingSupabaseConfig.jsx';
 import './styles/globals.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
